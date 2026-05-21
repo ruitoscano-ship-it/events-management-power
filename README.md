@@ -84,7 +84,8 @@ Se o projeto foi criado por CLI (`npm run deploy`) e **Git Provider** aparece co
 | `Executing user deploy command: npx wrangler deploy` | **Melhor:** Settings → Builds → **apagar** o *Deploy command*; build `npm run build`, output `dist`. |
 | `Missing entry-point to Worker script` / pede `[assets]` | O repo já inclui `[assets] directory = "./dist"` no `wrangler.toml` — faz push e **retry**. Build tem de correr **antes** do deploy (`npm run build`). |
 | `Wrangler requires at least Node.js v22` | `NODE_VERSION=22` nas env vars do projeto. |
-| Deploy command não pode ficar vazio | Usar build `npm run build` + deploy `npx wrangler deploy` (com o `wrangler.toml` atual), ou deploy `npx wrangler pages deploy dist --project-name=events-management-power`. |
+| `Invalid _redirects` / infinite loop | `public/_redirects` removido; SPA em `wrangler.toml` → `not_found_handling`. Push e retry. |
+| Deploy command não pode ficar vazio | Build `npm run build` + deploy `npx wrangler deploy` (com `wrangler.toml` atual), ou **melhor:** deploy command vazio + output `dist`. |
 
 Com API token (opcional, define env vars por CLI):
 
