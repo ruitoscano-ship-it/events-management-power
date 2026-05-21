@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { demoEventData, loadLocalData, saveLocalData } from '../data/demoData'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import { normalizeEventData } from '../lib/normalize'
 import type { EventData } from '../types'
 
 type LoadState = 'loading' | 'ready' | 'error'
@@ -26,7 +27,7 @@ export function useEventData() {
         if (evErr) throw evErr
         const event = events?.[0]
         if (!event) {
-          setData(structuredClone(demoEventData))
+          setData(normalizeEventData(structuredClone(demoEventData)))
           setSource('local')
           setState('ready')
           return
@@ -50,14 +51,16 @@ export function useEventData() {
           availability = avail ?? []
         }
 
-        setData({
-          event,
-          schedule: schedule.data ?? [],
-          volunteers: volunteers.data ?? [],
-          availability,
-          contributions: contributions.data ?? [],
-          tasks: tasks.data ?? [],
-        })
+        setData(
+          normalizeEventData({
+            event,
+            schedule: schedule.data ?? [],
+            volunteers: volunteers.data ?? [],
+            availability,
+            contributions: contributions.data ?? [],
+            tasks: tasks.data ?? [],
+          }),
+        )
         setSource('supabase')
         setState('ready')
       } catch (e) {

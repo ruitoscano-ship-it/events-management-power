@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { newId, fromDatetimeLocal, toDatetimeLocal } from '../../lib/datetime'
 import { FormField, inputClass, selectClass } from '../ui/FormField'
 import { useEvent } from '../../context/EventContext'
-import type { BlockType, ScheduleBlock } from '../../types'
+import { defaultCategory } from '../../lib/schedule'
+import type { BlockType, ScheduleBlock, ScheduleCategory } from '../../types'
 
 const blockTypes: BlockType[] = [
   'competition',
@@ -25,6 +26,9 @@ export function ScheduleForm({ initial, onDone }: Props) {
   const [blockType, setBlockType] = useState<BlockType>(
     initial?.block_type ?? 'competition',
   )
+  const [category, setCategory] = useState<ScheduleCategory>(
+    initial?.category ?? 'standard',
+  )
   const [startsAt, setStartsAt] = useState(
     initial ? toDatetimeLocal(initial.starts_at) : `${data.event.event_date}T09:00`,
   )
@@ -43,6 +47,7 @@ export function ScheduleForm({ initial, onDone }: Props) {
       description: description || null,
       location: location || null,
       block_type: blockType,
+      category: category || defaultCategory(blockType, title),
       starts_at: fromDatetimeLocal(startsAt),
       ends_at: fromDatetimeLocal(endsAt),
       sort_order: initial?.sort_order ?? data.schedule.length + 1,
@@ -57,7 +62,14 @@ export function ScheduleForm({ initial, onDone }: Props) {
       <FormField label="Título">
         <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} required />
       </FormField>
-      <FormField label="Tipo">
+      <FormField label="Categoria (badge)">
+        <select className={selectClass} value={category} onChange={(e) => setCategory(e.target.value as ScheduleCategory)}>
+          {(['setup', 'logistics', 'standard', 'latinas', 'break', 'ceremony', 'activity'] as ScheduleCategory[]).map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </FormField>
+      <FormField label="Tipo interno">
         <select className={selectClass} value={blockType} onChange={(e) => setBlockType(e.target.value as BlockType)}>
           {blockTypes.map((t) => (
             <option key={t} value={t}>{t}</option>

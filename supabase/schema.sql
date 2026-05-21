@@ -11,6 +11,8 @@ create table events (
   venue text,
   event_date date not null,
   sport_type text default 'danca_salao',
+  pairs_count int,
+  day_label text,
   created_at timestamptz default now()
 );
 
@@ -25,6 +27,8 @@ create table schedule_blocks (
   location text,
   block_type text not null default 'activity'
     check (block_type in ('activity', 'competition', 'break', 'ceremony', 'logistics')),
+  category text not null default 'activity'
+    check (category in ('setup', 'logistics', 'standard', 'latinas', 'break', 'ceremony', 'activity')),
   sort_order int default 0,
   created_at timestamptz default now()
 );

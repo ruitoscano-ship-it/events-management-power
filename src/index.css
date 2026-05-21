@@ -2,15 +2,15 @@
 
 @theme {
   --font-sans: "DM Sans", system-ui, sans-serif;
-  --color-brand-50: #f0f7ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-900: #1e3a5f;
-  --color-accent-500: #d946ef;
-  --color-surface: #ffffff;
-  --color-muted: #64748b;
+  --color-ink: #0a0a12;
+  --color-panel: #12121c;
+  --color-panel-2: #1a1a28;
+  --color-border-dark: #2a2a3d;
+  --color-pink: #ff2d6a;
+  --color-pink-dim: #ff2d6a33;
+  --color-purple: #a855f7;
+  --color-cyan: #22d3ee;
+  --color-muted-dark: #8b8ba3;
 }
 
 @layer base {
@@ -18,6 +18,58 @@
     @apply antialiased;
   }
   body {
-    @apply bg-slate-50 text-slate-900 min-h-dvh;
+    @apply min-h-dvh bg-[#0a0a12] text-white;
   }
+}
+
+/* Painéis secundários do organizador (reutilizam vistas antigas) */
+.organizer-panel h2.text-lg,
+.organizer-panel h3 {
+  color: #fff;
+}
+.organizer-panel .text-slate-900,
+.organizer-panel .text-slate-800,
+.organizer-panel .font-semibold {
+  color: #f1f5f9;
+}
+.organizer-panel .text-slate-600,
+.organizer-panel .text-slate-500,
+.organizer-panel .text-slate-400 {
+  color: #94a3b8;
+}
+.organizer-panel .text-brand-700,
+.organizer-panel .text-brand-600 {
+  color: #ff2d6a;
+}
+.organizer-panel .bg-white,
+.organizer-panel article.rounded-2xl,
+.organizer-panel li.rounded-2xl,
+.organizer-panel button.rounded-2xl {
+  background-color: #12121c !important;
+  border-color: #2a2a3d !important;
+}
+.organizer-panel .border-slate-200,
+.organizer-panel .border-brand-500 {
+  border-color: #2a2a3d !important;
+}
+.organizer-panel .bg-brand-50,
+.organizer-panel .bg-brand-100,
+.organizer-panel .ring-brand-200 {
+  background-color: #ff2d6a15 !important;
+  --tw-ring-color: #ff2d6a44;
+}
+.organizer-panel .bg-brand-600 {
+  background-color: #ff2d6a !important;
+}
+.organizer-panel .hover\:bg-brand-700:hover {
+  background-color: #e0265d !important;
+}
+.organizer-grid h2 {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.organizer-grid .bg-slate-50 {
+  background-color: #1a1a28 !important;
 }

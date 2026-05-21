@@ -5,8 +5,18 @@ export type BlockType =
   | 'ceremony'
   | 'logistics'
 
+export type ScheduleCategory =
+  | 'setup'
+  | 'logistics'
+  | 'standard'
+  | 'latinas'
+  | 'break'
+  | 'ceremony'
+  | 'activity'
+
 export type ContributionStatus = 'pending' | 'confirmed' | 'delivered'
 export type TaskStatus = 'assigned' | 'in_progress' | 'done'
+export type UserRole = 'organizer' | 'volunteer'
 
 export interface Event {
   id: string
@@ -15,6 +25,8 @@ export interface Event {
   venue: string | null
   event_date: string
   sport_type: string
+  pairs_count?: number | null
+  day_label?: string | null
 }
 
 export interface ScheduleBlock {
@@ -26,6 +38,7 @@ export interface ScheduleBlock {
   ends_at: string
   location: string | null
   block_type: BlockType
+  category: ScheduleCategory
   sort_order: number
 }
 
