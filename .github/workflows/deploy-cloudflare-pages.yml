@@ -27,7 +27,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NODE_VERSION: '20'
+          NODE_VERSION: '22'
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 

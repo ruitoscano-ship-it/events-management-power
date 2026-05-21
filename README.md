@@ -51,13 +51,14 @@ O projeto inclui `wrangler.toml` (output `dist`), `public/_redirects` (SPA) e `p
 | Framework preset | None |
 | Build command | `npm run build` |
 | Build output directory | `dist` |
+| **Deploy command** | *(deixar vazio — não usar `wrangler deploy`)* |
 | Root directory | `/` |
 
 5. **Environment variables** → **Production** e **Preview** (obrigatório se usares Supabase; o Vite embute-as no build):
 
 | Variável | Onde obter |
 |----------|------------|
-| `NODE_VERSION` | `20` (opcional; também há `.nvmrc`) |
+| `NODE_VERSION` | `22` (Wrangler 4.x exige Node 22+; ver `.nvmrc`) |
 | `VITE_SUPABASE_URL` | Supabase → **Project Settings** → **API** → **Project URL** (`https://….supabase.co`) |
 | `VITE_SUPABASE_ANON_KEY` | Supabase → **API** → **anon public** |
 
@@ -72,8 +73,17 @@ Se o projeto foi criado por CLI (`npm run deploy`) e **Git Provider** aparece co
 1. [Pages → events-management-power → Settings → Builds & deployments](https://dash.cloudflare.com/fcb192819ff6c403c3aae47e508948be/pages/view/events-management-power/settings/builds)
 2. **Connect to Git** → GitHub → `ruitoscano-ship-it/events-management-power`
 3. Build: `npm run build`, output `dist`, branch `main`
-4. **Environment variables** (Production + Preview): `NODE_VERSION=20`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-5. Guardar — o próximo push a `main` faz build na Cloudflare
+4. **Environment variables** (Production + Preview): `NODE_VERSION=22`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+5. **Deploy command:** vazio (esta app é estática; Cloudflare publica `dist` após o build)
+6. Guardar — o próximo push a `main` faz build na Cloudflare
+
+#### Build a falhar com `npx wrangler deploy` / Node 20
+
+| Erro | Correção |
+|------|----------|
+| `Executing user deploy command: npx wrangler deploy` | **Settings → Builds** → apagar o *Deploy command*. Usar só `npm run build` + output `dist`. |
+| `Wrangler requires at least Node.js v22` | Definir `NODE_VERSION=22` nas env vars do projeto (ou atualizar `.nvmrc` no repo). |
+| `wrangler deploy` vs Pages | `wrangler deploy` é para **Workers**. Este projeto usa **Pages** (ficheiros estáticos em `dist`). |
 
 Com API token (opcional, define env vars por CLI):
 

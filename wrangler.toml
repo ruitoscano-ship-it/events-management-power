@@ -1,4 +1,5 @@
-# Cloudflare Pages — Git (dashboard) ou: npm run deploy
+# Cloudflare Pages (static Vite app) — NOT a Worker.
+# Git build: command = npm run build, output = dist, deploy command = (empty)
 # https://developers.cloudflare.com/pages/configuration/build-configuration/
 name = "events-management-power"
 pages_build_output_dir = "dist"

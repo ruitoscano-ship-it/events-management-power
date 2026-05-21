@@ -19,7 +19,7 @@ const viteUrl = process.env.VITE_SUPABASE_URL
 const viteKey = process.env.VITE_SUPABASE_ANON_KEY
 
 const envVars = {
-  NODE_VERSION: { value: '20' },
+  NODE_VERSION: { value: '22' },
 }
 if (viteUrl) envVars.VITE_SUPABASE_URL = { value: viteUrl }
 if (viteKey) envVars.VITE_SUPABASE_ANON_KEY = { value: viteKey }
