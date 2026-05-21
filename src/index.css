@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --color-brand-50: #f0f7ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-900: #1e3a5f;
+  --color-accent-500: #d946ef;
+  --color-surface: #ffffff;
+  --color-muted: #64748b;
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 min-h-dvh;
+  }
+}
