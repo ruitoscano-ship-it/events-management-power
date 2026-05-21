@@ -73,3 +73,141 @@
 .organizer-grid .bg-slate-50 {
   background-color: #1a1a28 !important;
 }
+
+/* ——— Motion / page transitions ——— */
+@layer utilities {
+  .motion-page {
+    animation: motion-page-enter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .motion-role {
+    animation: motion-role-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .motion-fade {
+    animation: motion-fade-in 0.28s ease-out both;
+  }
+
+  .nav-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background-color: #ff2d6a;
+    border-radius: 2px 2px 0 0;
+    transition:
+      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .motion-modal-backdrop-open {
+    animation: motion-fade-in 0.22s ease-out both;
+  }
+
+  .motion-modal-backdrop-close {
+    animation: motion-fade-out 0.18s ease-in both;
+  }
+
+  .motion-modal-panel-open {
+    animation: motion-modal-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .motion-modal-panel-close {
+    animation: motion-modal-down 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+  }
+
+  .motion-stagger > * {
+    animation: motion-fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .motion-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .motion-stagger > *:nth-child(2) { animation-delay: 40ms; }
+  .motion-stagger > *:nth-child(3) { animation-delay: 80ms; }
+  .motion-stagger > *:nth-child(4) { animation-delay: 120ms; }
+  .motion-stagger > *:nth-child(5) { animation-delay: 160ms; }
+  .motion-stagger > *:nth-child(6) { animation-delay: 200ms; }
+  .motion-stagger > *:nth-child(n + 7) { animation-delay: 240ms; }
+}
+
+@keyframes motion-page-enter {
+  from {
+    opacity: 0;
+    transform: translateX(var(--motion-dx, 0)) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes motion-role-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.985) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes motion-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes motion-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes motion-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motion-modal-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes motion-modal-down {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-page,
+  .motion-role,
+  .motion-fade,
+  .motion-modal-backdrop-open,
+  .motion-modal-backdrop-close,
+  .motion-modal-panel-open,
+  .motion-modal-panel-close,
+  .motion-stagger > * {
+    animation: none !important;
+  }
+
+  .nav-indicator {
+    transition: none;
+  }
+}

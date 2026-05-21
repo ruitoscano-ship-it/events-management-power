@@ -43,7 +43,7 @@ export function OrganizerTeamPage() {
         <p className="text-sm text-slate-400 mb-6">
           Disponibilidade e materiais que cada um se comprometeu a trazer.
         </p>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2 motion-stagger">
           {data.volunteers.map((v) => {
             const slots = availByVolunteer[v.id] ?? []
             const items = itemsByVolunteer[v.id] ?? []

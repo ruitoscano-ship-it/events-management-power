@@ -81,7 +81,7 @@ export function VolunteerEuTragoPage() {
         <h3 className="text-sm font-bold tracking-widest text-slate-400 uppercase mb-4">
           Ainda em aberto — {openItems.length} {openItems.length === 1 ? 'item' : 'itens'}
         </h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 motion-stagger">
           {openItems.map((c) => (
             <button
               key={c.id}

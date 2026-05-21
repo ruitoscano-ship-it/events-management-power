@@ -1,10 +1,14 @@
+import { AnimatedNav, type NavTab } from '../ui/AnimatedNav'
+
 export type OrganizerTab = 'horario' | 'logistica' | 'equipa'
 
-const tabs: { id: OrganizerTab; label: string }[] = [
+const tabs: readonly NavTab<OrganizerTab>[] = [
   { id: 'horario', label: 'HORÁRIO' },
   { id: 'logistica', label: 'LOGÍSTICA' },
   { id: 'equipa', label: 'EQUIPA' },
 ]
+
+export const ORGANIZER_TAB_ORDER: readonly OrganizerTab[] = tabs.map((t) => t.id)
 
 interface Props {
   active: OrganizerTab
@@ -12,25 +16,5 @@ interface Props {
 }
 
 export function OrganizerNav({ active, onChange }: Props) {
-  return (
-    <nav className="border-b border-[#2a2a3d] bg-[#0a0a12]">
-      <div className="mx-auto flex max-w-7xl gap-8 px-4">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => onChange(t.id)}
-            className={`relative py-3 text-xs font-bold tracking-widest transition-colors ${
-              active === t.id ? 'text-white' : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            {t.label}
-            {active === t.id && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#ff2d6a]" />
-            )}
-          </button>
-        ))}
-      </div>
-    </nav>
-  )
+  return <AnimatedNav tabs={tabs} active={active} onChange={onChange} />
 }

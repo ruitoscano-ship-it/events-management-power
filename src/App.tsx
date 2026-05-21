@@ -2,10 +2,15 @@ import { EventProvider } from './context/EventContext'
 import { RoleProvider, useRole } from './context/RoleContext'
 import { OrganizerApp } from './components/organizer/OrganizerApp'
 import { VolunteerApp } from './components/volunteer/VolunteerApp'
+import { PageTransition } from './components/ui/PageTransition'
 
 function AppRouter() {
   const { role } = useRole()
-  return role === 'organizer' ? <OrganizerApp /> : <VolunteerApp />
+  return (
+    <PageTransition pageKey={role} variant="role">
+      {role === 'organizer' ? <OrganizerApp /> : <VolunteerApp />}
+    </PageTransition>
+  )
 }
 
 function App() {

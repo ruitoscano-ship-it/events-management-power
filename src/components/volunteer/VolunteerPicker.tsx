@@ -15,7 +15,7 @@ export function VolunteerPicker() {
         <p className="mt-2 text-sm text-slate-400">
           Escolhe o teu nome para veres o horário, marcares o que trazes e indicares a tua disponibilidade.
         </p>
-        <ul className="mt-8 grid gap-2">
+        <ul className="mt-8 grid gap-2 motion-stagger">
           {data.volunteers.map((v) => (
             <li key={v.id}>
               <button

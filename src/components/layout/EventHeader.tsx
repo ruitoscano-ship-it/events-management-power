@@ -51,7 +51,7 @@ export function EventHeader() {
             <button
               type="button"
               onClick={() => setRole('organizer')}
-              className={`rounded-md px-4 py-2 transition-colors ${
+              className={`rounded-md px-4 py-2 transition-all duration-200 ${
                 role === 'organizer'
                   ? 'bg-[#ff2d6a] text-white'
                   : 'text-slate-400 hover:text-white'
@@ -62,7 +62,7 @@ export function EventHeader() {
             <button
               type="button"
               onClick={() => setRole('volunteer')}
-              className={`rounded-md px-4 py-2 transition-colors ${
+              className={`rounded-md px-4 py-2 transition-all duration-200 ${
                 role === 'volunteer'
                   ? 'bg-[#ff2d6a] text-white'
                   : 'text-slate-400 hover:text-white'
