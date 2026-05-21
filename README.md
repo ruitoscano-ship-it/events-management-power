@@ -77,13 +77,14 @@ Se o projeto foi criado por CLI (`npm run deploy`) e **Git Provider** aparece co
 5. **Deploy command:** vazio (esta app é estática; Cloudflare publica `dist` após o build)
 6. Guardar — o próximo push a `main` faz build na Cloudflare
 
-#### Build a falhar com `npx wrangler deploy` / Node 20
+#### Build a falhar com `npx wrangler deploy`
 
 | Erro | Correção |
 |------|----------|
-| `Executing user deploy command: npx wrangler deploy` | **Settings → Builds** → apagar o *Deploy command*. Usar só `npm run build` + output `dist`. |
-| `Wrangler requires at least Node.js v22` | Definir `NODE_VERSION=22` nas env vars do projeto (ou atualizar `.nvmrc` no repo). |
-| `wrangler deploy` vs Pages | `wrangler deploy` é para **Workers**. Este projeto usa **Pages** (ficheiros estáticos em `dist`). |
+| `Executing user deploy command: npx wrangler deploy` | **Melhor:** Settings → Builds → **apagar** o *Deploy command*; build `npm run build`, output `dist`. |
+| `Missing entry-point to Worker script` / pede `[assets]` | O repo já inclui `[assets] directory = "./dist"` no `wrangler.toml` — faz push e **retry**. Build tem de correr **antes** do deploy (`npm run build`). |
+| `Wrangler requires at least Node.js v22` | `NODE_VERSION=22` nas env vars do projeto. |
+| Deploy command não pode ficar vazio | Usar build `npm run build` + deploy `npx wrangler deploy` (com o `wrangler.toml` atual), ou deploy `npx wrangler pages deploy dist --project-name=events-management-power`. |
 
 Com API token (opcional, define env vars por CLI):
 

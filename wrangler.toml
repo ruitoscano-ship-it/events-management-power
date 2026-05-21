@@ -1,6 +1,9 @@
-# Cloudflare Pages (static Vite app) — NOT a Worker.
-# Git build: command = npm run build, output = dist, deploy command = (empty)
-# https://developers.cloudflare.com/pages/configuration/build-configuration/
+# Static Vite app → Cloudflare Pages
+# Preferred Git settings: build = npm run build, output = dist, deploy command = (empty)
+# If the dashboard still runs `npx wrangler deploy`, [assets] below makes that succeed after build.
 name = "events-management-power"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-05-21"
+
+[assets]
+directory = "./dist"
