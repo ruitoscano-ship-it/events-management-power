@@ -6,10 +6,11 @@ import type { Volunteer } from '../../types'
 
 interface Props {
   initial?: Volunteer
+  isNew?: boolean
   onDone: () => void
 }
 
-export function VolunteerForm({ initial, onDone }: Props) {
+export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
   const { data, saveVolunteer } = useEvent()
   const [name, setName] = useState(initial?.name ?? '')
   const [email, setEmail] = useState(initial?.email ?? '')
@@ -21,15 +22,19 @@ export function VolunteerForm({ initial, onDone }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    await saveVolunteer({
-      id: initial?.id ?? newId(),
-      event_id: data.event.id,
-      name,
-      email: email || null,
-      phone: phone || null,
-      role: role || null,
-      notes: notes || null,
-    })
+    await saveVolunteer(
+      {
+        id: initial?.id ?? newId(),
+        event_id: data.event.id,
+        name,
+        email: email || null,
+        phone: phone || null,
+        role: role || null,
+        notes: notes || null,
+        active: initial?.active ?? true,
+      },
+      isNew || !initial,
+    )
     setSaving(false)
     onDone()
   }

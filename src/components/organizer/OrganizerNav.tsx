@@ -1,11 +1,12 @@
 import { AnimatedNav, type NavTab } from '../ui/AnimatedNav'
 
-export type OrganizerTab = 'horario' | 'logistica' | 'equipa'
+export type OrganizerTab = 'horario' | 'logistica' | 'equipa' | 'admin'
 
 const tabs: readonly NavTab<OrganizerTab>[] = [
   { id: 'horario', label: 'HORÁRIO' },
   { id: 'logistica', label: 'LOGÍSTICA' },
   { id: 'equipa', label: 'EQUIPA' },
+  { id: 'admin', label: 'ADMIN' },
 ]
 
 export const ORGANIZER_TAB_ORDER: readonly OrganizerTab[] = tabs.map((t) => t.id)

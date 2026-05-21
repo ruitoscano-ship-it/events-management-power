@@ -156,19 +156,19 @@ export const demoEventData: EventData = {
     }),
   ],
   volunteers: [
-    { id: 'v-ma', event_id: DEMO_EVENT_ID, name: 'Maria Antunes', email: 'maria.antunes@email.pt', phone: '912000000', role: 'COORD. PISTA', notes: null },
-    { id: 'v-rc', event_id: DEMO_EVENT_ID, name: 'Rui Costa', email: null, phone: null, role: 'Pista', notes: null },
-    { id: 'v-bs', event_id: DEMO_EVENT_ID, name: 'Beatriz Silva', email: null, phone: null, role: 'Pista', notes: null },
-    { id: 'v-ps', event_id: DEMO_EVENT_ID, name: 'Pedro Santos', email: null, phone: null, role: 'Logística', notes: null },
-    { id: 'v-jt', event_id: DEMO_EVENT_ID, name: 'Joana Teixeira', email: null, phone: null, role: 'Catering', notes: null },
-    { id: 'v-ev', event_id: DEMO_EVENT_ID, name: 'Eva Vieira', email: null, phone: null, role: 'Catering', notes: null },
-    { id: 'v-ha', event_id: DEMO_EVENT_ID, name: 'Hugo Almeida', email: null, phone: null, role: 'Pista', notes: null },
-    { id: 'v-an', event_id: DEMO_EVENT_ID, name: 'Ana Nunes', email: null, phone: null, role: 'Secretariat', notes: null },
-    { id: 'v-jl', event_id: DEMO_EVENT_ID, name: 'Joana Lopes', email: null, phone: null, role: 'Secretariat', notes: null },
-    { id: 'v-mg', event_id: DEMO_EVENT_ID, name: 'Maria Garcia', email: null, phone: null, role: 'Secretariat', notes: null },
-    { id: 'v-cd', event_id: DEMO_EVENT_ID, name: 'Carlos Dias', email: null, phone: null, role: 'Setup', notes: null },
-    { id: 'v-ms', event_id: DEMO_EVENT_ID, name: 'Maria Silva', email: 'maria@email.pt', phone: '912000001', role: 'Catering', notes: null },
-    { id: 'v-jc', event_id: DEMO_EVENT_ID, name: 'Joana Costa', email: 'joana@email.pt', phone: '912000002', role: 'Catering', notes: null },
+    { id: 'v-ma', event_id: DEMO_EVENT_ID, name: 'Maria Antunes', email: 'maria.antunes@email.pt', phone: '912000000', role: 'COORD. PISTA', notes: null, active: true },
+    { id: 'v-rc', event_id: DEMO_EVENT_ID, name: 'Rui Costa', email: null, phone: null, role: 'Pista', notes: null, active: true },
+    { id: 'v-bs', event_id: DEMO_EVENT_ID, name: 'Beatriz Silva', email: null, phone: null, role: 'Pista', notes: null, active: true },
+    { id: 'v-ps', event_id: DEMO_EVENT_ID, name: 'Pedro Santos', email: null, phone: null, role: 'Logística', notes: null, active: true },
+    { id: 'v-jt', event_id: DEMO_EVENT_ID, name: 'Joana Teixeira', email: null, phone: null, role: 'Catering', notes: null, active: true },
+    { id: 'v-ev', event_id: DEMO_EVENT_ID, name: 'Eva Vieira', email: null, phone: null, role: 'Catering', notes: null, active: true },
+    { id: 'v-ha', event_id: DEMO_EVENT_ID, name: 'Hugo Almeida', email: null, phone: null, role: 'Pista', notes: null, active: true },
+    { id: 'v-an', event_id: DEMO_EVENT_ID, name: 'Ana Nunes', email: null, phone: null, role: 'Secretariat', notes: null, active: true },
+    { id: 'v-jl', event_id: DEMO_EVENT_ID, name: 'Joana Lopes', email: null, phone: null, role: 'Secretariat', notes: null, active: true },
+    { id: 'v-mg', event_id: DEMO_EVENT_ID, name: 'Maria Garcia', email: null, phone: null, role: 'Secretariat', notes: null, active: true },
+    { id: 'v-cd', event_id: DEMO_EVENT_ID, name: 'Carlos Dias', email: null, phone: null, role: 'Setup', notes: null, active: false },
+    { id: 'v-ms', event_id: DEMO_EVENT_ID, name: 'Maria Silva', email: 'maria@email.pt', phone: '912000001', role: 'Catering', notes: null, active: true },
+    { id: 'v-jc', event_id: DEMO_EVENT_ID, name: 'Joana Costa', email: 'joana@email.pt', phone: '912000002', role: 'Catering', notes: null, active: true },
   ],
   availability: [
     { id: 'a-ma1', volunteer_id: 'v-ma', available_from: '2026-06-13T07:30:00+01:00', available_until: '2026-06-13T13:00:00+01:00', notes: null },
@@ -199,7 +199,7 @@ export const demoEventData: EventData = {
     { id: 'c-open13', event_id: DEMO_EVENT_ID, volunteer_id: null, item_name: 'Caixa de primeiros socorros (refill)', quantity: '1 faltam', needed_by: null, status: 'pending', notes: null, needed_count: 1 },
     { id: 'c1', event_id: DEMO_EVENT_ID, volunteer_id: 'v-ms', item_name: 'Bolo de chocolate', quantity: 'x1', needed_by: '2026-06-13T16:00:00+01:00', status: 'confirmed', notes: null, destination: 'CAFETARIA' },
     { id: 'c2', event_id: DEMO_EVENT_ID, volunteer_id: 'v-jc', item_name: 'Quiche Lorraine', quantity: 'x3', needed_by: '2026-06-13T12:00:00+01:00', status: 'confirmed', notes: null, destination: 'STAFF' },
-    { id: 'c3', event_id: DEMO_EVENT_ID, volunteer_id: 'v-ps', item_name: 'Garrafas de água 1.5L', quantity: 'x24', needed_by: '2026-06-13T07:30:00+01:00', status: 'confirmed', notes: null, destination: 'GERAL' },
+    { id: 'c-done', event_id: DEMO_EVENT_ID, volunteer_id: 'v-ps', item_name: 'Garrafas de água 1.5L', quantity: 'x24', needed_by: '2026-06-13T07:30:00+01:00', status: 'delivered', notes: null, destination: 'GERAL' },
     { id: 'c4', event_id: DEMO_EVENT_ID, volunteer_id: 'v-jt', item_name: 'Sumo natural (laranja)', quantity: 'x1', needed_by: '2026-06-13T12:00:00+01:00', status: 'pending', notes: null, destination: 'BAR' },
   ],
   tasks: [
@@ -225,9 +225,16 @@ export const demoEventData: EventData = {
     { id: 't13', event_id: DEMO_EVENT_ID, volunteer_id: 'v-ms', schedule_block_id: 's9', title: 'Coffee break', starts_at: '2026-06-13T15:45:00+01:00', ends_at: '2026-06-13T16:30:00+01:00', status: 'assigned', notes: null },
     { id: 't14', event_id: DEMO_EVENT_ID, volunteer_id: 'v-jc', schedule_block_id: 's9', title: 'Coffee break', starts_at: '2026-06-13T15:45:00+01:00', ends_at: '2026-06-13T16:30:00+01:00', status: 'assigned', notes: null },
   ],
+  auditLog: [
+    { id: 'log-1', at: '2026-05-15T09:00:00+01:00', action: 'event.updated', summary: 'Evento configurado: Cascais, 192 pares', entity_type: 'event', entity_id: DEMO_EVENT_ID },
+    { id: 'log-2', at: '2026-05-16T10:30:00+01:00', action: 'volunteer.created', summary: 'Voluntário criado: Maria Antunes', entity_type: 'volunteer', entity_id: 'v-ma' },
+    { id: 'log-3', at: '2026-05-18T14:00:00+01:00', action: 'contribution.created', summary: 'Necessidade criada: Quiche de legumes', entity_type: 'contribution', entity_id: 'c-open1' },
+    { id: 'log-4', at: '2026-05-19T11:00:00+01:00', action: 'volunteer.deactivated', summary: 'Inativado: Carlos Dias', entity_type: 'volunteer', entity_id: 'v-cd' },
+    { id: 'log-5', at: '2026-05-20T08:15:00+01:00', action: 'contribution.completed', summary: 'Concluído: Garrafas de água 1.5L', entity_type: 'contribution', entity_id: 'c-done' },
+  ],
 }
 
-const STORAGE_KEY = 'eventflow-data-v3'
+const STORAGE_KEY = 'eventflow-data-v4'
 
 export function loadLocalData(): EventData {
   const raw = localStorage.getItem(STORAGE_KEY)

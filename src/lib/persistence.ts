@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import type {
   Contribution,
+  Event,
   EventData,
   ScheduleBlock,
   Volunteer,
@@ -9,6 +10,7 @@ import type {
 } from '../types'
 
 type Table =
+  | 'events'
   | 'schedule_blocks'
   | 'volunteers'
   | 'volunteer_availability'
@@ -25,6 +27,10 @@ async function dbDelete(table: Table, id: string): Promise<void> {
   if (!supabase) return
   const { error } = await supabase.from(table).delete().eq('id', id)
   if (error) throw error
+}
+
+export async function syncEvent(event: Event, useDb: boolean) {
+  if (useDb) await dbUpsert('events', event)
 }
 
 export async function syncSchedule(block: ScheduleBlock, useDb: boolean) {

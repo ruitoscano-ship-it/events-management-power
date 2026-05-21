@@ -2,6 +2,7 @@ import { parseISO } from 'date-fns'
 import { useMemo } from 'react'
 import { useEvent } from '../context/EventContext'
 import { formatTime } from '../lib/format'
+import { activeVolunteers } from '../lib/volunteers'
 
 const HOUR_START = 6
 const HOUR_END = 21
@@ -85,7 +86,7 @@ export function GridView() {
             </div>
           </div>
 
-          {data.volunteers.map((v) => {
+          {activeVolunteers(data.volunteers).map((v) => {
             const slots = availByVolunteer[v.id] ?? []
             const tasks = tasksByVolunteer[v.id] ?? []
             return (

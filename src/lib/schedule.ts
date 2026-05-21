@@ -1,3 +1,4 @@
+import { isActiveVolunteer } from './volunteers'
 import type { EventData, ScheduleBlock, ScheduleCategory } from '../types'
 import { formatTime } from './format'
 
@@ -21,7 +22,7 @@ export function volunteersForBlock(
       ids.add(t.volunteer_id)
     }
   }
-  return data.volunteers.filter((v) => ids.has(v.id))
+  return data.volunteers.filter((v) => ids.has(v.id) && isActiveVolunteer(v))
 }
 
 export function scheduleStats(schedule: ScheduleBlock[], pairsCount?: number | null) {

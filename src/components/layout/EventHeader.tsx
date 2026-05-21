@@ -10,7 +10,7 @@ export function EventHeader() {
   const { role, setRole, volunteerId, setVolunteerId } = useRole()
   const e = data.event
   const volunteer = volunteerId ? volunteerById(data.volunteers, volunteerId) : null
-  const pairsDisplay = 96
+  const pairsDisplay = e.pairs_count ?? '—'
 
   return (
     <header className="border-b border-[#2a2a3d] bg-[#0a0a12]">
@@ -34,7 +34,7 @@ export function EventHeader() {
         <div className="hidden md:flex items-center gap-6 text-xs text-slate-400">
           <span>
             <span className="text-slate-500">DATA:</span>{' '}
-            <span className="text-white font-medium">{e.day_label ?? 'Sábado'}</span>
+            <span className="text-white font-medium capitalize">{e.day_label ?? 'Sábado'}</span>
           </span>
           <span>
             <span className="text-slate-500">LOCAL:</span>{' '}

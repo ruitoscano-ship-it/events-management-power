@@ -42,6 +42,7 @@ create table volunteers (
   phone text,
   role text,
   notes text,
+  active boolean not null default true,
   created_at timestamptz default now()
 );
 

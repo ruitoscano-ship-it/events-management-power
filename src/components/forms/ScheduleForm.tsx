@@ -52,7 +52,7 @@ export function ScheduleForm({ initial, onDone }: Props) {
       ends_at: fromDatetimeLocal(endsAt),
       sort_order: initial?.sort_order ?? data.schedule.length + 1,
     }
-    await saveSchedule(block)
+    await saveSchedule(block, !initial)
     setSaving(false)
     onDone()
   }

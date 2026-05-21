@@ -6,6 +6,7 @@ import { PageTransition } from '../ui/PageTransition'
 import { OrganizerLogisticsPage } from './OrganizerLogisticsPage'
 import { OrganizerNav, ORGANIZER_TAB_ORDER, type OrganizerTab } from './OrganizerNav'
 import { OrganizerSchedulePage } from './OrganizerSchedulePage'
+import { OrganizerAdminPage } from './OrganizerAdminPage'
 import { OrganizerTeamPage } from './OrganizerTeamPage'
 
 export function OrganizerApp() {
@@ -24,6 +25,7 @@ export function OrganizerApp() {
         {tab === 'horario' && <OrganizerSchedulePage />}
         {tab === 'logistica' && <OrganizerLogisticsPage />}
         {tab === 'equipa' && <OrganizerTeamPage />}
+        {tab === 'admin' && <OrganizerAdminPage />}
       </PageTransition>
     </div>
   )

@@ -59,6 +59,7 @@ export function useEventData() {
             availability,
             contributions: contributions.data ?? [],
             tasks: tasks.data ?? [],
+            auditLog: [],
           }),
         )
         setSource('supabase')

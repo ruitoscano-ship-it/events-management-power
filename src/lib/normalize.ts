@@ -1,5 +1,7 @@
+import { format, parseISO } from 'date-fns'
+import { pt } from 'date-fns/locale'
 import { defaultCategory } from './schedule'
-import type { EventData, ScheduleBlock } from '../types'
+import type { EventData, ScheduleBlock, Volunteer } from '../types'
 
 function normalizeBlock(block: ScheduleBlock): ScheduleBlock {
   return {
@@ -10,13 +12,31 @@ function normalizeBlock(block: ScheduleBlock): ScheduleBlock {
   }
 }
 
+function normalizeVolunteer(v: Volunteer): Volunteer {
+  return { ...v, active: v.active !== false }
+}
+
+function dayLabelFromDate(eventDate: string): string {
+  try {
+    return format(parseISO(eventDate + 'T12:00:00'), 'EEEE', { locale: pt })
+  } catch {
+    return 'Sábado'
+  }
+}
+
 export function normalizeEventData(data: EventData): EventData {
+  const eventDate = data.event.event_date
   return {
     ...data,
+    auditLog: data.auditLog ?? [],
     schedule: data.schedule.map(normalizeBlock),
+    volunteers: data.volunteers.map(normalizeVolunteer),
     event: {
       ...data.event,
-      day_label: data.event.day_label ?? 'Sábado',
+      day_label:
+        data.event.day_label ?? dayLabelFromDate(eventDate),
     },
   }
 }
+
+export { dayLabelFromDate }

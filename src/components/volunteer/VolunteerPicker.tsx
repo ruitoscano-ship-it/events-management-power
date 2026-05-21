@@ -1,6 +1,6 @@
 import { useEvent } from '../../context/EventContext'
 import { useRole } from '../../context/RoleContext'
-import { avatarColor, volunteerInitials } from '../../lib/volunteers'
+import { activeVolunteers, avatarColor, volunteerInitials } from '../../lib/volunteers'
 import { EventHeader } from '../layout/EventHeader'
 
 export function VolunteerPicker() {
@@ -16,7 +16,7 @@ export function VolunteerPicker() {
           Escolhe o teu nome para veres o horário, marcares o que trazes e indicares a tua disponibilidade.
         </p>
         <ul className="mt-8 grid gap-2 motion-stagger">
-          {data.volunteers.map((v) => (
+          {activeVolunteers(data.volunteers).map((v) => (
             <li key={v.id}>
               <button
                 type="button"

@@ -11,6 +11,14 @@ const AVATAR_COLORS = [
   '#ef4444',
 ]
 
+export function isActiveVolunteer(v: Volunteer): boolean {
+  return v.active !== false
+}
+
+export function activeVolunteers(volunteers: Volunteer[]): Volunteer[] {
+  return volunteers.filter(isActiveVolunteer)
+}
+
 export function volunteerInitials(name: string): string {
   const parts = name.trim().split(/\s+/)
   if (parts.length >= 2) {

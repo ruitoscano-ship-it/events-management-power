@@ -9,7 +9,7 @@ import { ActionBar } from './ui/ActionBar'
 import { Modal } from './ui/Modal'
 
 export function VolunteersView() {
-  const { data, deleteVolunteer, deleteAvailability } = useEvent()
+  const { data, setVolunteerActive, deleteAvailability } = useEvent()
   const [selectedVolunteer, setSelectedVolunteer] = useState<Volunteer | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<VolunteerAvailability | null>(null)
   const [modal, setModal] = useState<'volunteer' | 'availability' | null>(null)
@@ -22,7 +22,7 @@ export function VolunteersView() {
 
   async function handleDeleteVolunteer() {
     if (!selectedVolunteer || !confirm(`Apagar ${selectedVolunteer.name}?`)) return
-    await deleteVolunteer(selectedVolunteer.id)
+    await setVolunteerActive(selectedVolunteer.id, false)
     setSelectedVolunteer(null)
   }
 

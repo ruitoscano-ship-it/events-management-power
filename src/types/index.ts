@@ -18,6 +18,31 @@ export type ContributionStatus = 'pending' | 'confirmed' | 'delivered'
 export type TaskStatus = 'assigned' | 'in_progress' | 'done'
 export type UserRole = 'organizer' | 'volunteer'
 
+export type AuditAction =
+  | 'event.updated'
+  | 'volunteer.created'
+  | 'volunteer.updated'
+  | 'volunteer.deactivated'
+  | 'volunteer.reactivated'
+  | 'schedule.created'
+  | 'schedule.updated'
+  | 'schedule.deleted'
+  | 'contribution.created'
+  | 'contribution.updated'
+  | 'contribution.deleted'
+  | 'contribution.completed'
+  | 'availability.created'
+  | 'availability.deleted'
+
+export interface AuditLogEntry {
+  id: string
+  at: string
+  action: AuditAction
+  summary: string
+  entity_type?: string
+  entity_id?: string
+}
+
 export interface Event {
   id: string
   name: string
@@ -28,6 +53,17 @@ export interface Event {
   pairs_count?: number | null
   day_label?: string | null
   edition_label?: string | null
+}
+
+export interface Volunteer {
+  id: string
+  event_id: string
+  name: string
+  email: string | null
+  phone: string | null
+  role: string | null
+  notes: string | null
+  active: boolean
 }
 
 export interface ScheduleBlock {
@@ -41,16 +77,6 @@ export interface ScheduleBlock {
   block_type: BlockType
   category: ScheduleCategory
   sort_order: number
-}
-
-export interface Volunteer {
-  id: string
-  event_id: string
-  name: string
-  email: string | null
-  phone: string | null
-  role: string | null
-  notes: string | null
 }
 
 export interface VolunteerAvailability {
@@ -93,4 +119,5 @@ export interface EventData {
   availability: VolunteerAvailability[]
   contributions: Contribution[]
   tasks: VolunteerTask[]
+  auditLog: AuditLogEntry[]
 }
