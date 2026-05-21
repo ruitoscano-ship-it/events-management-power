@@ -34,41 +34,87 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 
 ## Deploy — Cloudflare Pages
 
+Repositório: `https://github.com/ruitoscano-ship-it/events-management-power`
+
+O projeto inclui `wrangler.toml` (output `dist`), `public/_redirects` (SPA) e `public/_headers` (cache dos assets).
+
 ### Opção A: Git (recomendado)
 
-1. Push para `github.com/<utilizador>/events-management-power`
-2. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-3. Repositório: `events-management-power`
-4. Configuração de build:
+1. Garantir que `main` está no GitHub (já configurado).
+2. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
+3. Autorizar GitHub e escolher `ruitoscano-ship-it/events-management-power`.
+4. **Build settings** (o `wrangler.toml` pode pré-preencher o output directory):
 
 | Campo | Valor |
 |-------|--------|
+| Production branch | `main` |
 | Framework preset | None |
 | Build command | `npm run build` |
 | Build output directory | `dist` |
 | Root directory | `/` |
 
-5. **Environment variables** (Production + Preview):
+5. **Environment variables** → **Production** e **Preview** (obrigatório se usares Supabase; o Vite embute-as no build):
 
-| Variável | Valor |
-|----------|--------|
-| `VITE_SUPABASE_URL` | URL do projeto Supabase |
-| `VITE_SUPABASE_ANON_KEY` | Chave anon (pública) |
+| Variável | Onde obter |
+|----------|------------|
+| `NODE_VERSION` | `20` (opcional; também há `.nvmrc`) |
+| `VITE_SUPABASE_URL` | Supabase → **Project Settings** → **API** → **Project URL** (`https://….supabase.co`) |
+| `VITE_SUPABASE_ANON_KEY` | Supabase → **API** → **anon public** |
 
-6. Deploy — cada push à branch `main` gera novo deploy.
+Sem `VITE_*`, a app funciona em modo **localStorage** (demo).
 
-### Opção B: CLI
+6. **Save and Deploy**. Cada push a `main` dispara um novo deploy.
+
+**Projeto já criado:** `events-management-power` → https://events-management-power.pages.dev
+
+Se o projeto foi criado por CLI (`npm run deploy`) e **Git Provider** aparece como *No*:
+
+1. [Pages → events-management-power → Settings → Builds & deployments](https://dash.cloudflare.com/fcb192819ff6c403c3aae47e508948be/pages/view/events-management-power/settings/builds)
+2. **Connect to Git** → GitHub → `ruitoscano-ship-it/events-management-power`
+3. Build: `npm run build`, output `dist`, branch `main`
+4. **Environment variables** (Production + Preview): `NODE_VERSION=20`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+5. Guardar — o próximo push a `main` faz build na Cloudflare
+
+Com API token (opcional, define env vars por CLI):
 
 ```bash
-npm run build
-npx wrangler pages deploy dist --project-name=events-management-power
+export CLOUDFLARE_API_TOKEN=...   # Pages Edit
+node --env-file=.env scripts/configure-pages-env.mjs
 ```
 
-Definir variáveis no dashboard: **Pages** → projeto → **Settings** → **Environment variables**.
+### Opção A2: GitHub Actions (já no repo)
+
+Workflow `.github/workflows/deploy-cloudflare-pages.yml` — deploy em cada push a `main`.
+
+Secrets em **GitHub** → repo → **Settings** → **Secrets and variables** → **Actions**:
+
+| Secret | Valor |
+|--------|--------|
+| `CLOUDFLARE_API_TOKEN` | API token (Pages Edit) |
+| `CLOUDFLARE_ACCOUNT_ID` | `fcb192819ff6c403c3aae47e508948be` |
+| `VITE_SUPABASE_URL` | igual ao `.env` |
+| `VITE_SUPABASE_ANON_KEY` | igual ao `.env` |
+
+### Opção B: CLI (Wrangler)
+
+```bash
+npm install
+npx wrangler login          # uma vez
+npm run deploy              # production
+# npm run deploy:preview    # branch preview no mesmo projeto
+```
+
+As variáveis `VITE_*` têm de estar definidas **antes** do build. Na CLI, exporta-as no terminal ou define-as no dashboard Cloudflare e usa deploy via Git.
+
+### Checklist pós-deploy
+
+- [ ] Abrir o URL `.pages.dev` e alternar ORGANIZADOR / VOLUNTÁRIO
+- [ ] Se usares Supabase: confirmar que o SQL em `supabase/schema.sql` foi executado
+- [ ] Domínio próprio (opcional): Pages → **Custom domains** → adicionar DNS na Cloudflare
 
 ### SPA routing
 
-O ficheiro `public/_redirects` envia todas as rotas para `index.html` (necessário se adicionares React Router no futuro).
+`public/_redirects` envia todas as rotas para `index.html` (útil com React Router ou URLs diretas).
 
 ## Funcionalidades
 
@@ -93,3 +139,5 @@ src/context/          — estado e mutações (local + Supabase)
 | `npm run dev` | Desenvolvimento |
 | `npm run build` | Build produção (`dist/`) |
 | `npm run preview` | Pré-visualizar build |
+| `npm run deploy` | Build + deploy Cloudflare Pages (production) |
+| `npm run deploy:preview` | Build + deploy (branch preview) |
