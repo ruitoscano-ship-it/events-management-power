@@ -27,6 +27,7 @@ export interface Event {
   sport_type: string
   pairs_count?: number | null
   day_label?: string | null
+  edition_label?: string | null
 }
 
 export interface ScheduleBlock {
@@ -69,6 +70,8 @@ export interface Contribution {
   needed_by: string | null
   status: ContributionStatus
   notes: string | null
+  destination?: string | null
+  needed_count?: number | null
 }
 
 export interface VolunteerTask {

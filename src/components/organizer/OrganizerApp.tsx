@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useEvent } from '../../context/EventContext'
-import { OrganizerHeader } from './OrganizerHeader'
+import { EventHeader } from '../layout/EventHeader'
 import { OrganizerLogisticsTab } from './OrganizerLogisticsTab'
 import { OrganizerNav, type OrganizerTab } from './OrganizerNav'
 import { OrganizerVolunteersTab } from './OrganizerVolunteersTab'
@@ -12,7 +12,7 @@ export function OrganizerApp() {
 
   return (
     <div className="min-h-dvh bg-[#0a0a12]">
-      <OrganizerHeader />
+      <EventHeader />
       <OrganizerNav active={tab} onChange={setTab} />
       {saving && (
         <p className="text-center text-xs text-[#ff2d6a] py-1">A guardar…</p>

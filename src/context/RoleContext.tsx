@@ -32,7 +32,11 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const setRole = useCallback((r: UserRole) => {
     setRoleState(r)
     localStorage.setItem(ROLE_KEY, r)
-  }, [])
+    if (r === 'volunteer' && !localStorage.getItem(VOLUNTEER_KEY)) {
+      localStorage.setItem(VOLUNTEER_KEY, 'v-ma')
+      setVolunteerIdState('v-ma')
+    }
+  }, [setVolunteerIdState])
 
   const setVolunteerId = useCallback((id: string | null) => {
     setVolunteerIdState(id)
