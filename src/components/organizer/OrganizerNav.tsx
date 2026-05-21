@@ -1,9 +1,9 @@
-export type OrganizerTab = 'horario' | 'voluntarios' | 'logistica'
+export type OrganizerTab = 'horario' | 'logistica' | 'equipa'
 
 const tabs: { id: OrganizerTab; label: string }[] = [
   { id: 'horario', label: 'HORÁRIO' },
-  { id: 'voluntarios', label: 'VOLUNTÁRIOS' },
   { id: 'logistica', label: 'LOGÍSTICA' },
+  { id: 'equipa', label: 'EQUIPA' },
 ]
 
 interface Props {

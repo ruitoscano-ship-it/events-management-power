@@ -7,7 +7,7 @@ const MARIA_AVATAR = '#f97316'
 
 export function EventHeader() {
   const { data } = useEvent()
-  const { role, setRole, volunteerId } = useRole()
+  const { role, setRole, volunteerId, setVolunteerId } = useRole()
   const e = data.event
   const volunteer = volunteerId ? volunteerById(data.volunteers, volunteerId) : null
   const pairsDisplay = 96
@@ -86,6 +86,13 @@ export function EventHeader() {
               <span className="text-sm font-medium text-white">
                 {volunteer.name.split(' ')[0]}
               </span>
+              <button
+                type="button"
+                onClick={() => setVolunteerId(null)}
+                className="text-[10px] text-slate-500 hover:text-white uppercase tracking-wide"
+              >
+                Trocar
+              </button>
             </div>
           )}
         </div>

@@ -1,10 +1,9 @@
-export type VolunteerTab = 'meu-dia' | 'horario' | 'voluntarios' | 'logistica'
+export type VolunteerTab = 'horario' | 'eu-trago' | 'disponibilidade'
 
 const tabs: { id: VolunteerTab; label: string }[] = [
-  { id: 'meu-dia', label: 'O MEU DIA' },
   { id: 'horario', label: 'HORÁRIO' },
-  { id: 'voluntarios', label: 'VOLUNTÁRIOS' },
-  { id: 'logistica', label: 'LOGÍSTICA' },
+  { id: 'eu-trago', label: 'EU TRAGO' },
+  { id: 'disponibilidade', label: 'DISPONIBILIDADE' },
 ]
 
 interface Props {

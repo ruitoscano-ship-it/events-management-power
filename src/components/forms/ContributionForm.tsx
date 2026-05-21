@@ -21,6 +21,7 @@ export function ContributionForm({ initial, onDone }: Props) {
   )
   const [status, setStatus] = useState<ContributionStatus>(initial?.status ?? 'pending')
   const [notes, setNotes] = useState(initial?.notes ?? '')
+  const [destination, setDestination] = useState(initial?.destination ?? '')
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,6 +36,7 @@ export function ContributionForm({ initial, onDone }: Props) {
       needed_by: neededBy ? fromDatetimeLocal(neededBy) : null,
       status,
       notes: notes || null,
+      destination: destination || null,
     })
     setSaving(false)
     onDone()
@@ -65,6 +67,9 @@ export function ContributionForm({ initial, onDone }: Props) {
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+      </FormField>
+      <FormField label="Destino">
+        <input className={inputClass} value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="BAR, MESA JURADOS…" />
       </FormField>
       <FormField label="Notas">
         <input className={inputClass} value={notes} onChange={(e) => setNotes(e.target.value)} />

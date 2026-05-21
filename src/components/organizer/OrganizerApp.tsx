@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useEvent } from '../../context/EventContext'
 import { EventHeader } from '../layout/EventHeader'
-import { OrganizerLogisticsTab } from './OrganizerLogisticsTab'
+import { OrganizerLogisticsPage } from './OrganizerLogisticsPage'
 import { OrganizerNav, type OrganizerTab } from './OrganizerNav'
-import { OrganizerVolunteersTab } from './OrganizerVolunteersTab'
-import { ScheduleHomePage } from './ScheduleHomePage'
+import { OrganizerSchedulePage } from './OrganizerSchedulePage'
+import { OrganizerTeamPage } from './OrganizerTeamPage'
 
 export function OrganizerApp() {
   const [tab, setTab] = useState<OrganizerTab>('horario')
@@ -17,9 +17,9 @@ export function OrganizerApp() {
       {saving && (
         <p className="text-center text-xs text-[#ff2d6a] py-1">A guardar…</p>
       )}
-      {tab === 'horario' && <ScheduleHomePage />}
-      {tab === 'voluntarios' && <OrganizerVolunteersTab />}
-      {tab === 'logistica' && <OrganizerLogisticsTab />}
+      {tab === 'horario' && <OrganizerSchedulePage />}
+      {tab === 'logistica' && <OrganizerLogisticsPage />}
+      {tab === 'equipa' && <OrganizerTeamPage />}
     </div>
   )
 }

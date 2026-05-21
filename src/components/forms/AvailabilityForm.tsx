@@ -7,10 +7,16 @@ import type { VolunteerAvailability } from '../../types'
 interface Props {
   initial?: VolunteerAvailability
   defaultVolunteerId?: string
+  lockVolunteer?: boolean
   onDone: () => void
 }
 
-export function AvailabilityForm({ initial, defaultVolunteerId, onDone }: Props) {
+export function AvailabilityForm({
+  initial,
+  defaultVolunteerId,
+  lockVolunteer = false,
+  onDone,
+}: Props) {
   const { data, saveAvailability } = useEvent()
   const [volunteerId, setVolunteerId] = useState(
     initial?.volunteer_id ?? defaultVolunteerId ?? data.volunteers[0]?.id ?? '',
@@ -40,13 +46,15 @@ export function AvailabilityForm({ initial, defaultVolunteerId, onDone }: Props)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <FormField label="Voluntário">
-        <select className={selectClass} value={volunteerId} onChange={(e) => setVolunteerId(e.target.value)} required>
-          {data.volunteers.map((v) => (
-            <option key={v.id} value={v.id}>{v.name}</option>
-          ))}
-        </select>
-      </FormField>
+      {!lockVolunteer && (
+        <FormField label="Voluntário">
+          <select className={selectClass} value={volunteerId} onChange={(e) => setVolunteerId(e.target.value)} required>
+            {data.volunteers.map((v) => (
+              <option key={v.id} value={v.id}>{v.name}</option>
+            ))}
+          </select>
+        </FormField>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <FormField label="Disponível desde">
           <input type="datetime-local" className={inputClass} value={from} onChange={(e) => setFrom(e.target.value)} required />
