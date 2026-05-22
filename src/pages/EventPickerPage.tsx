@@ -1,7 +1,8 @@
-import { ArrowLeft, LogOut } from 'lucide-react'
-import { useMemo } from 'react'
+import { ArrowLeft, LogOut, RefreshCw } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { isEventOngoing, listEventSummaries } from '../lib/catalog'
+import { isSupabaseConfigured } from '../lib/supabase'
 import { EventCard } from '../components/shared/EventCard'
 
 interface Props {
@@ -19,7 +20,10 @@ export function EventPickerPage({ variant }: Props) {
     exitToEntry,
     logoutOrganizer,
     logoutVolunteer,
+    forceSyncFromServer,
+    lastSyncedAt,
   } = useAuth()
+  const [syncing, setSyncing] = useState(false)
 
   const { ongoing, past } = useMemo(() => {
     const all = listEventSummaries(catalog)
@@ -36,7 +40,7 @@ export function EventPickerPage({ variant }: Props) {
 
   return (
     <div className="min-h-dvh bg-[#0a0a12]">
-      <div className="page-container max-w-3xl">
+      <div className="page-container-narrow">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
@@ -67,11 +71,38 @@ export function EventPickerPage({ variant }: Props) {
               : 'Seleciona o evento.'}
         </p>
 
-        {dataSource === 'supabase' && (
-          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
-            Ligado ao Supabase
-          </p>
-        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {dataSource === 'supabase' && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+              Supabase
+            </span>
+          )}
+          {isSupabaseConfigured && dataSource === 'local' && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+              Cache local (sem ligação)
+            </span>
+          )}
+          {lastSyncedAt && (
+            <span className="text-[10px] text-slate-600">
+              Sync {new Date(lastSyncedAt).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+          {isSupabaseConfigured && (
+            <button
+              type="button"
+              disabled={syncing || catalogLoading}
+              onClick={async () => {
+                setSyncing(true)
+                await forceSyncFromServer()
+                setSyncing(false)
+              }}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#2a2a3d] bg-[#1a1a28] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-300 hover:text-white disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing || catalogLoading ? 'animate-spin' : ''}`} />
+              {syncing ? 'A sincronizar…' : 'Atualizar do servidor'}
+            </button>
+          )}
+        </div>
 
         {catalogLoading ? (
           <p className="mt-8 text-sm text-slate-500">A carregar eventos…</p>

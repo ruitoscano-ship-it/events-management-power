@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { useEvent } from '../../context/EventContext'
+import { formatEventDateLine } from '../../lib/eventDate'
 import { dayLabelFromDate } from '../../lib/normalize'
 import { darkBtnPrimary, darkInput, darkLabel } from '../ui/darkForm'
 import type { Event } from '../../types'
@@ -133,8 +134,13 @@ export function EventSettingsForm() {
         />
       </label>
       <p className="text-xs text-slate-500">
-        Dia da semana (cabeçalho):{' '}
-        <span className="text-slate-300 capitalize">{dayLabelFromDate(eventDate)}</span>
+        Data no cabeçalho:{' '}
+        <span className="text-slate-300 capitalize">
+          {formatEventDateLine({
+            event_date: eventDate,
+            day_label: dayLabelFromDate(eventDate),
+          })}
+        </span>
       </p>
 
       {savedNotice && (

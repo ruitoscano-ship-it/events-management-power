@@ -28,7 +28,7 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
         onClick={onClose}
       />
       <div
-        className={`relative z-10 flex max-h-[min(90dvh,100%)] w-full flex-col rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:max-w-lg sm:rounded-2xl ${
+        className={`relative z-10 flex max-h-[min(92dvh,100%)] w-full max-w-[100vw] flex-col rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:max-h-[min(90dvh,100%)] sm:max-w-lg sm:rounded-2xl md:max-w-xl ${
           open ? 'motion-modal-panel-open' : 'motion-modal-panel-close'
         }`}
         onAnimationEnd={(e) => {

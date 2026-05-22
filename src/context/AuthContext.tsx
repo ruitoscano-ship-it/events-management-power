@@ -7,8 +7,14 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { ensureVolunteerInEvent, loadCatalog, saveCatalog } from '../lib/catalog'
+import {
+  bootstrapDataSync,
+  ensureVolunteerInEvent,
+  loadCatalog,
+  saveCatalog,
+} from '../lib/catalog'
 import { hydrateCatalogFromSupabase } from '../lib/supabaseData'
+import { readSyncMeta } from '../lib/syncMeta'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { loginOrganizerAccount } from '../lib/organizerAuth'
 import {
@@ -76,6 +82,8 @@ interface AuthContextValue {
   dataSource: 'local' | 'supabase'
   catalogLoading: boolean
   refreshCatalog: () => Promise<void>
+  forceSyncFromServer: () => Promise<void>
+  lastSyncedAt: string | null
   volunteerAccount: VolunteerAccount | null
   mode: PortalMode | null
   organizerLoggedIn: boolean
@@ -108,6 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isSupabaseConfigured ? 'supabase' : 'local',
   )
   const [catalogLoading, setCatalogLoading] = useState(isSupabaseConfigured)
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() =>
+    readSyncMeta().hydratedAt,
+  )
   const [auth, setAuth] = useState<AuthPersist>(readAuth)
 
   const volunteerAccount = useMemo(() => accountFromAuth(auth), [auth])
@@ -123,15 +134,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const ok = await hydrateCatalogFromSupabase()
       setDataSource(ok ? 'supabase' : 'local')
       setCatalog(loadCatalog())
+      setLastSyncedAt(readSyncMeta().hydratedAt)
       setCatalogLoading(false)
       return
     }
     setCatalog(loadCatalog())
     setDataSource('local')
+    setLastSyncedAt(null)
   }, [])
 
+  const forceSyncFromServer = useCallback(async () => {
+    bootstrapDataSync()
+    await refreshCatalog()
+  }, [refreshCatalog])
+
   useEffect(() => {
+    bootstrapDataSync()
     void refreshCatalog()
+  }, [refreshCatalog])
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refreshCatalog()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [refreshCatalog])
 
   const setVolunteerSession = useCallback(
@@ -279,6 +307,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dataSource,
       catalogLoading,
       refreshCatalog,
+      forceSyncFromServer,
+      lastSyncedAt,
       volunteerAccount,
       mode: auth.mode,
       organizerLoggedIn: auth.organizerLoggedIn,
@@ -301,6 +331,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dataSource,
       catalogLoading,
       refreshCatalog,
+      forceSyncFromServer,
+      lastSyncedAt,
       volunteerAccount,
       auth,
       startOrganizer,

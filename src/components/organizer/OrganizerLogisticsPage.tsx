@@ -32,7 +32,7 @@ export function OrganizerLogisticsPage() {
   return (
     <div className="page-container space-y-8 sm:space-y-10">
       <section>
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-white uppercase">Em aberto</h2>
             <p className="mt-1 text-sm text-slate-400">
@@ -42,7 +42,7 @@ export function OrganizerLogisticsPage() {
           <button
             type="button"
             onClick={() => setShowAdd(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-2 text-sm font-medium text-white"
+            className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-2.5 text-sm font-medium text-white sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Nova necessidade

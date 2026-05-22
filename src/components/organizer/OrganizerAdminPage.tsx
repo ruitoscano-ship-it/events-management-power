@@ -136,7 +136,7 @@ export function OrganizerAdminPage() {
               ))}
             </ul>
             <div className="hidden md:block rounded-xl border border-[#2a2a3d] bg-[#12121c] overflow-hidden max-h-[420px] overflow-y-auto">
-              <div className="overflow-x-auto">
+              <div className="table-scroll overflow-x-auto">
                 <table className="w-full min-w-[480px] text-left text-sm">
                   <thead className="sticky top-0 bg-[#1a1a28] text-[10px] uppercase tracking-widest text-slate-500">
                     <tr>

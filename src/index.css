@@ -24,13 +24,22 @@
 
 @layer utilities {
   .page-container {
-    @apply mx-auto max-w-7xl px-4 py-5 sm:py-6;
+    @apply mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 sm:py-6;
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
   }
 
   .page-container-narrow {
-    @apply mx-auto max-w-3xl px-4 py-5 sm:py-6;
+    @apply mx-auto w-full max-w-3xl px-3 py-4 sm:px-4 sm:py-6;
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .table-scroll {
+    @apply -mx-3 overflow-x-auto overscroll-x-contain px-3 sm:mx-0 sm:px-0;
+    -webkit-overflow-scrolling: touch;
   }
 
   .form-grid-2 {
@@ -44,7 +53,20 @@
   .nav-scroll {
     @apply overflow-x-auto overscroll-x-contain scroll-smooth;
     -webkit-overflow-scrolling: touch;
-    scroll-padding-inline: 1rem;
+    scroll-padding-inline: 0.75rem;
+    scrollbar-width: none;
+  }
+
+  .nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .action-bar-mobile {
+    @apply flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center;
+  }
+
+  .action-bar-mobile > button {
+    @apply w-full sm:w-auto;
   }
 }
 

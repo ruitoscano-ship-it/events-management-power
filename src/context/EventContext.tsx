@@ -59,6 +59,8 @@ interface EventContextValue {
   saveTask: (task: VolunteerTask) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   saveVenueLayout: (layout: VenueLayout) => Promise<void>
+  refreshEvent: () => Promise<void>
+  lastFetchedAt: string | null
   saveSponsor: (sponsor: EventSponsor, isNew?: boolean) => Promise<void>
   deleteSponsor: (id: string) => Promise<void>
   saveRevenueEntry: (entry: RevenueEntry, isNew?: boolean) => Promise<void>
@@ -69,8 +71,17 @@ const EventContext = createContext<EventContextValue | null>(null)
 
 export function EventProvider({ children }: { children: ReactNode }) {
   const { activeEventId } = useAuth()
-  const { data, source, persist, isSupabaseConfigured, state, error, reload, useDb } =
-    useEventData(activeEventId)
+  const {
+    data,
+    source,
+    persist,
+    isSupabaseConfigured,
+    state,
+    error,
+    reload,
+    fetchedAt,
+    useDb,
+  } = useEventData(activeEventId)
   const [saving, setSaving] = useState(false)
 
   const apply = useCallback(
@@ -429,13 +440,17 @@ export function EventProvider({ children }: { children: ReactNode }) {
             deleteSponsor,
             saveRevenueEntry,
             deleteRevenueEntry,
+            refreshEvent: reload,
+            lastFetchedAt: fetchedAt,
           }
         : null,
     [
       data,
       source,
       saving,
+      fetchedAt,
       isSupabaseConfigured,
+      reload,
       saveEvent,
       saveSchedule,
       deleteSchedule,
@@ -453,6 +468,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
       deleteSponsor,
       saveRevenueEntry,
       deleteRevenueEntry,
+      reload,
+      fetchedAt,
     ],
   )
 

@@ -138,7 +138,7 @@ export function VenueLayoutEditor({ layout, onChange }: Props) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
       <div className="min-w-0 flex-1 space-y-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           <ToolBtn onClick={() => addZone('dance_floor')}>+ Pista</ToolBtn>
           <ToolBtn onClick={() => addZone('jury')}>+ Júri</ToolBtn>
           <ToolBtn onClick={() => addZone('sponsors')}>+ Sponsors</ToolBtn>
@@ -350,7 +350,7 @@ function ToolBtn({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-lg border border-[#2a2a3d] bg-[#1a1a28] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-300 hover:border-[#ff2d6a]/50 hover:text-white sm:text-xs"
+      className="rounded-lg border border-[#2a2a3d] bg-[#1a1a28] px-2 py-1.5 text-[9px] font-bold uppercase tracking-wide text-slate-300 hover:border-[#ff2d6a]/50 hover:text-white min-[400px]:text-[10px] sm:px-2.5 sm:text-xs"
     >
       {children}
     </button>

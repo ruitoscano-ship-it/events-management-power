@@ -1,4 +1,4 @@
-import { loadCatalog, saveCatalog } from './catalog'
+import { saveCatalog } from './catalog'
 import {
   mapAvailabilityRow,
   mapContributionRow,
@@ -111,8 +111,6 @@ export async function fetchEventDataFromSupabase(
     ? mapVenueLayoutRow(eventId, layoutRow.layout_data)
     : null
 
-  const cached = loadCatalog().events[eventId]
-
   return normalizeEventData({
     event: mappedEvent,
     schedule: (schedule.data ?? []).map((r) =>
@@ -135,7 +133,7 @@ export async function fetchEventDataFromSupabase(
     revenueEntries: (revenue.data ?? []).map((r) =>
       mapRevenueRow(r as Record<string, unknown>),
     ),
-    auditLog: cached?.auditLog ?? [],
+    auditLog: [],
   })
 }
 
@@ -161,7 +159,7 @@ export async function hydrateCatalogFromSupabase(): Promise<boolean> {
       accounts: [],
       events,
     }
-    saveCatalog(merged)
+    saveCatalog(merged, 'supabase')
     return true
   } catch (e) {
     console.error('[Supabase] hydrate catalog:', e)

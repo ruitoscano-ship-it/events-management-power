@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useEvent } from '../../context/EventContext'
-import { formatDate, formatTimeRange } from '../../lib/format'
+import { formatEventDateLong } from '../../lib/eventDate'
+import { formatTimeRange } from '../../lib/format'
 import { volunteersForBlock } from '../../lib/schedule'
 import { CategoryBadge } from '../organizer/CategoryBadge'
 import { VolunteerAvatars } from '../organizer/VolunteerAvatars'
@@ -43,7 +44,7 @@ export function ScheduleTable({
             <span className="text-[#ff2d6a]">oficial</span>
           </h2>
           <p className="mt-1 text-sm text-slate-400 capitalize">
-            {formatDate(data.event.event_date + 'T12:00:00')} — visível para toda a equipa
+            {formatEventDateLong(data.event.event_date)} — visível para toda a equipa
           </p>
         </div>
       )}

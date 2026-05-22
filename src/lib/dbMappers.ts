@@ -16,7 +16,8 @@ import type {
 
 /** Normaliza linha `events` do PostgREST para o tipo da app. */
 export function mapEventRow(row: Record<string, unknown>): Event {
-  const eventDate = String(row.event_date ?? '')
+  const rawDate = String(row.event_date ?? '')
+  const eventDate = rawDate.includes('T') ? rawDate.slice(0, 10) : rawDate
   return {
     id: String(row.id),
     name: String(row.name ?? ''),

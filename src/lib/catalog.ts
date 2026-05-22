@@ -3,10 +3,16 @@ import { normalizeEventData } from './normalize'
 import { newId } from './datetime'
 import { normalizePhone } from './phone'
 import { isSupabaseConfigured, supabase } from './supabase'
+import {
+  CATALOG_SCHEMA_VERSION,
+  CATALOG_STORAGE_KEY,
+  clearCatalogCache,
+  isSupabaseCacheValid,
+  markCatalogSynced,
+  purgeObsoleteCaches,
+  type DataSourceTag,
+} from './syncMeta'
 import type { EventCatalog, EventData, Volunteer, VolunteerAccount } from '../types'
-
-const CATALOG_KEY = 'eventflow-catalog-v1'
-const LEGACY_KEY = 'eventflow-data-v4'
 
 export const PAST_EVENT_ID = 'a0000000-0000-4000-8000-000000000002'
 
@@ -44,41 +50,65 @@ function seedCatalog(): EventCatalog {
 }
 
 function migrateLegacy(): EventCatalog | null {
-  const raw = localStorage.getItem(LEGACY_KEY)
-  if (!raw) return null
-  const data = normalizeEventData(JSON.parse(raw) as EventData)
-  return {
-    accounts: [],
-    events: { [data.event.id]: data },
+  try {
+    const raw = localStorage.getItem('eventflow-data-v4')
+    if (!raw) return null
+    const data = normalizeEventData(JSON.parse(raw) as EventData)
+    return {
+      accounts: [],
+      events: { [data.event.id]: data },
+    }
+  } catch {
+    return null
+  }
+}
+
+function parseStoredCatalog(raw: string): EventCatalog {
+  const parsed = JSON.parse(raw) as EventCatalog
+  const events: Record<string, EventData> = {}
+  for (const [id, data] of Object.entries(parsed.events ?? {})) {
+    events[id] = normalizeEventData(data)
+  }
+  const accounts = isSupabaseConfigured ? [] : (parsed.accounts ?? [])
+  return { accounts, events }
+}
+
+/**
+ * Inicialização com Supabase: limpa caches antigos e força nova hidratação do servidor.
+ */
+export function bootstrapDataSync(): void {
+  purgeObsoleteCaches()
+  if (isSupabaseConfigured) {
+    clearCatalogCache()
   }
 }
 
 export function loadCatalog(): EventCatalog {
-  const raw = localStorage.getItem(CATALOG_KEY)
-  if (raw) {
-    const parsed = JSON.parse(raw) as EventCatalog
-    const events: Record<string, EventData> = {}
-    for (const [id, data] of Object.entries(parsed.events ?? {})) {
-      events[id] = normalizeEventData(data)
-    }
-    const accounts = isSupabaseConfigured ? [] : (parsed.accounts ?? [])
-    return {
-      accounts,
-      events,
-    }
+  if (isSupabaseConfigured && !isSupabaseCacheValid()) {
+    return { accounts: [], events: {} }
   }
+
+  const raw = localStorage.getItem(CATALOG_STORAGE_KEY)
+  if (raw) {
+    return parseStoredCatalog(raw)
+  }
+
   if (isSupabaseConfigured) {
     return { accounts: [], events: {} }
   }
 
   const migrated = migrateLegacy()
   const catalog = migrated ?? seedCatalog()
-  saveCatalog(catalog)
+  saveCatalog(catalog, 'local')
   return catalog
 }
 
-export function saveCatalog(catalog: EventCatalog): void {
-  localStorage.setItem(CATALOG_KEY, JSON.stringify(catalog))
+export function saveCatalog(
+  catalog: EventCatalog,
+  source: DataSourceTag = isSupabaseConfigured ? 'supabase' : 'local',
+): void {
+  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(catalog))
+  markCatalogSynced(source)
 }
 
 export function listEventSummaries(catalog: EventCatalog) {
@@ -169,3 +199,5 @@ export function resolveVolunteerId(
   )
   return v?.id ?? null
 }
+
+export { CATALOG_SCHEMA_VERSION }

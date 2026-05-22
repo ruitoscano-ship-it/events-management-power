@@ -22,9 +22,10 @@ function normalizeVolunteer(v: Volunteer): Volunteer {
 
 function dayLabelFromDate(eventDate: string): string {
   try {
-    return format(parseISO(eventDate + 'T12:00:00'), 'EEEE', { locale: pt })
+    const iso = eventDate.includes('T') ? eventDate : `${eventDate}T12:00:00`
+    return format(parseISO(iso), 'EEEE', { locale: pt })
   } catch {
-    return 'Sábado'
+    return ''
   }
 }
 

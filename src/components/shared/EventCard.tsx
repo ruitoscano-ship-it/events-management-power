@@ -1,7 +1,6 @@
-import { format, parseISO } from 'date-fns'
-import { pt } from 'date-fns/locale'
 import { Calendar, MapPin, Users } from 'lucide-react'
 import { isEventOngoing } from '../../lib/catalog'
+import { formatEventDateLine } from '../../lib/eventDate'
 import type { Event } from '../../types'
 
 interface Props {
@@ -11,14 +10,7 @@ interface Props {
 
 export function EventCard({ event, onSelect }: Props) {
   const ongoing = isEventOngoing(event.event_date)
-  let dateLabel = event.event_date
-  try {
-    dateLabel = format(parseISO(event.event_date + 'T12:00:00'), 'd MMM yyyy', {
-      locale: pt,
-    })
-  } catch {
-    /* keep raw */
-  }
+  const dateLine = formatEventDateLine(event)
 
   return (
     <button
@@ -50,7 +42,7 @@ export function EventCard({ event, onSelect }: Props) {
       <ul className="mt-3 space-y-1.5 text-xs text-slate-400">
         <li className="flex items-center gap-2">
           <Calendar className="h-3.5 w-3.5 shrink-0" />
-          <span className="capitalize">{event.day_label ?? '—'} · {dateLabel}</span>
+          <span className="capitalize">{dateLine}</span>
         </li>
         {event.venue && (
           <li className="flex items-center gap-2">
