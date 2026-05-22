@@ -83,7 +83,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
         () => syncEvent(event, useDb),
         {
           action: 'event.updated',
-          summary: `Evento atualizado: ${event.venue}, ${event.event_date}, ${event.pairs_count ?? 0} pares`,
+          summary: `Evento atualizado: ${event.name} — ${event.venue}, ${event.event_date}, ${event.pairs_count ?? 0} pares`,
           entity_type: 'event',
           entity_id: event.id,
         },

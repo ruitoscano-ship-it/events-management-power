@@ -36,7 +36,7 @@ export function OrganizerAdminPage() {
       <section className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4 sm:p-6">
         <h2 className="text-xl font-bold text-white uppercase">Configuração do evento</h2>
         <p className="mt-1 text-sm text-slate-400 mb-6">
-          Data, local e número de pares — visíveis no cabeçalho para toda a equipa.
+          Nome, data, local e número de pares — visíveis no cabeçalho para toda a equipa.
         </p>
         <EventSettingsForm />
       </section>

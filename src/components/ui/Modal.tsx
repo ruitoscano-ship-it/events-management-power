@@ -47,7 +47,7 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
           </button>
         </div>
         <div
-          className={`min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5 ${
+          className={`modal-form min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-slate-900 sm:px-5 ${
             open ? 'motion-fade' : ''
           }`}
         >

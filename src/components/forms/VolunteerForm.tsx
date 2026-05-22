@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { newId } from '../../lib/datetime'
 import { useEvent } from '../../context/EventContext'
-import { FormField, inputClass } from '../ui/FormField'
+import { FormField, inputClass, submitButtonClass } from '../ui/FormField'
 import type { Volunteer } from '../../types'
 
 interface Props {
@@ -57,7 +57,7 @@ export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
       <FormField label="Notas">
         <textarea className={inputClass} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </FormField>
-      <button type="submit" disabled={saving} className="w-full rounded-lg bg-brand-600 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">
+      <button type="submit" disabled={saving} className={submitButtonClass}>
         {saving ? 'A guardar…' : 'Guardar'}
       </button>
     </form>

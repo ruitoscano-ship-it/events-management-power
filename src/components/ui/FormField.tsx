@@ -16,8 +16,9 @@ export function FormField({ label, children, hint }: FormFieldProps) {
   )
 }
 
+/** Inputs em fundo claro (modais) — texto explícito para não herdar text-white do body */
 export const inputClass =
-  'w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
+  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-[#ff2d6a] focus:outline-none focus:ring-2 focus:ring-[#ff2d6a]/25 sm:text-sm [color-scheme:light]'
 
 export const selectClass = inputClass
 

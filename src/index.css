@@ -100,6 +100,28 @@
   background-color: #1a1a28 !important;
 }
 
+/* Formulários em modais (fundo branco; body tem text-white global) */
+.modal-form input:not([type='checkbox']):not([type='radio']),
+.modal-form select,
+.modal-form textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1;
+}
+.modal-form input::placeholder,
+.modal-form textarea::placeholder {
+  color: #94a3b8 !important;
+}
+.modal-form input[type='datetime-local'],
+.modal-form input[type='date'],
+.modal-form input[type='time'] {
+  color-scheme: light;
+}
+.modal-form select option {
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
 /* ——— Motion / page transitions ——— */
 @layer utilities {
   .motion-page {
