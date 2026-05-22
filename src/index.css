@@ -146,8 +146,11 @@
 
 /* Scroll dentro de modais (iOS: permitir arrastar o conteúdo do formulário) */
 .modal-dialog-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  overscroll-behavior: contain;
 }
 
 /* ——— Motion / page transitions ——— */

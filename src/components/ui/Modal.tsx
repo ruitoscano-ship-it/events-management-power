@@ -1,14 +1,17 @@
 import { X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   title: string
   open: boolean
   onClose: () => void
   children: ReactNode
-  /** When false, child supplies its own padding/layout (e.g. split form + footer). */
+  /** When false, child is a split layout (scroll body + fixed footer), e.g. VolunteerForm. */
   contentPadding?: boolean
 }
+
+const DIALOG_HEIGHT = 'min(86svh, calc(100svh - 1.5rem))'
 
 export function Modal({
   title,
@@ -34,8 +37,8 @@ export function Modal({
 
   if (!mounted) return null
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-[200] isolate">
       <button
         type="button"
         className={`absolute inset-0 bg-slate-900/60 ${
@@ -44,14 +47,18 @@ export function Modal({
         aria-label="Fechar"
         onClick={onClose}
       />
-      <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-6 pointer-events-none">
+      <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-6">
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
-          className={`pointer-events-auto flex w-full max-w-lg min-h-0 max-h-[calc(100svh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl sm:max-w-xl ${
+          className={`relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-xl ${
             open ? 'motion-modal-panel-open' : 'motion-modal-panel-close'
           }`}
+          style={{
+            height: DIALOG_HEIGHT,
+            maxHeight: DIALOG_HEIGHT,
+          }}
           onAnimationEnd={(e) => {
             if (e.currentTarget !== e.target) return
             if (!open && e.animationName === 'motion-modal-down') setMounted(false)
@@ -70,17 +77,19 @@ export function Modal({
               <X className="h-5 w-5" />
             </button>
           </div>
-          <div
-            className={`modal-form flex min-h-0 flex-1 flex-col overflow-hidden text-slate-900 ${
-              contentPadding
-                ? 'modal-dialog-scroll overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-5'
-                : ''
-            }`}
-          >
-            {children}
-          </div>
+
+          {contentPadding ? (
+            <div className="modal-form modal-dialog-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-5 text-slate-900">
+              {children}
+            </div>
+          ) : (
+            <div className="modal-form grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] overflow-hidden text-slate-900">
+              {children}
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
