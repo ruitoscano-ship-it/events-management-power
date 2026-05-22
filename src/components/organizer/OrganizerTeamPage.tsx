@@ -20,14 +20,14 @@ export function OrganizerTeamPage() {
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-white uppercase">Gerir voluntários</h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1.5 text-base leading-relaxed text-slate-300 sm:text-sm sm:text-slate-400">
               Edita dados base ou inativa — utilizadores inativos ficam na tab Admin.
             </p>
           </div>
           <button
             type="button"
             onClick={() => { setSelected(null); setModal('add') }}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-2 text-sm font-medium text-white"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-3 text-sm font-bold text-white sm:min-h-0 sm:w-auto sm:py-2"
           >
             <UserPlus className="h-4 w-4" />
             Novo voluntário

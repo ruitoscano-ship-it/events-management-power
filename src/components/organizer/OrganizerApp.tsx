@@ -22,7 +22,7 @@ export function OrganizerApp() {
       <EventHeader />
       <OrganizerNav active={tab} onChange={setTab} />
       {saving && (
-        <p className="text-center text-xs text-[#ff2d6a] py-1 motion-fade">A guardar…</p>
+        <p className="text-center text-sm text-[#ff2d6a] py-1.5 motion-fade">A guardar…</p>
       )}
       <PageTransition pageKey={tab} direction={direction}>
         {tab === 'horario' && <OrganizerSchedulePage />}

@@ -46,7 +46,7 @@ interface EventContextValue {
   source: 'supabase' | 'unconfigured'
   saving: boolean
   isSupabaseConfigured: boolean
-  saveEvent: (event: Event) => Promise<void>
+  saveEvent: (event: Event) => Promise<string | null>
   saveSchedule: (block: ScheduleBlock, isNew?: boolean) => Promise<void>
   deleteSchedule: (id: string) => Promise<void>
   saveVolunteer: (volunteer: Volunteer, isNew?: boolean) => Promise<void>
@@ -70,11 +70,12 @@ interface EventContextValue {
 const EventContext = createContext<EventContextValue | null>(null)
 
 export function EventProvider({ children }: { children: ReactNode }) {
-  const { activeEventId } = useAuth()
+  const { activeEventId, patchCatalogEvent } = useAuth()
   const {
     data,
     source,
     persist,
+    markLocalEdit,
     isSupabaseConfigured,
     state,
     error,
@@ -90,30 +91,44 @@ export function EventProvider({ children }: { children: ReactNode }) {
       setSaving(true)
       try {
         const payload = audit ? appendAuditLog(next, audit) : next
-        if (sync) await sync()
         persist(payload)
+        markLocalEdit()
+        if (sync) await sync()
+      } catch (e) {
+        console.error('[EventContext] apply:', e)
+        throw e
       } finally {
         setSaving(false)
       }
     },
-    [data, persist],
+    [data, persist, markLocalEdit],
   )
 
   const saveEvent = useCallback(
-    async (event: Event) => {
-      if (!data) return
-      await apply(
-        patchData(data, { event }),
-        () => syncEvent(event, useDb),
-        {
-          action: 'event.updated',
-          summary: `Evento atualizado: ${event.name} — ${event.venue}, ${event.event_date}, ${event.pairs_count ?? 0} pares`,
-          entity_type: 'event',
-          entity_id: event.id,
-        },
-      )
+    async (event: Event): Promise<string | null> => {
+      if (!data) return 'Dados do evento não disponíveis.'
+      try {
+        await apply(
+          patchData(data, { event }),
+          () => syncEvent(event, useDb),
+          {
+            action: 'event.updated',
+            summary: `Evento atualizado: ${event.name} — ${event.venue}, ${event.event_date}, ${event.pairs_count ?? 0} pares`,
+            entity_type: 'event',
+            entity_id: event.id,
+          },
+        )
+        patchCatalogEvent(event)
+        return null
+      } catch (e) {
+        const msg =
+          e instanceof Error
+            ? e.message
+            : 'Não foi possível guardar no servidor.'
+        return msg
+      }
     },
-    [apply, data, useDb],
+    [apply, data, useDb, patchCatalogEvent],
   )
 
   const saveSchedule = useCallback(

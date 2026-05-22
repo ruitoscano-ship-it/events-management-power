@@ -24,17 +24,17 @@
 
 @layer utilities {
   .page-container {
-    @apply mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 sm:py-6;
-    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
-    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    @apply mx-auto w-full max-w-7xl px-4 py-5 text-base sm:px-4 sm:py-6 sm:text-sm;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
 
   .page-container-narrow {
-    @apply mx-auto w-full max-w-3xl px-3 py-4 sm:px-4 sm:py-6;
-    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
-    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    @apply mx-auto w-full max-w-3xl px-4 py-5 sm:px-4 sm:py-6;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
 
   .table-scroll {
@@ -53,7 +53,7 @@
   .nav-scroll {
     @apply overflow-x-auto overscroll-x-contain scroll-smooth;
     -webkit-overflow-scrolling: touch;
-    scroll-padding-inline: 0.75rem;
+    scroll-padding-inline: 1rem;
     scrollbar-width: none;
   }
 

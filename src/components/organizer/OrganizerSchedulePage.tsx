@@ -23,10 +23,11 @@ export function OrganizerSchedulePage() {
   return (
     <div className="page-container">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-        <p className="text-sm text-slate-400 max-w-xl">
+        <p className="max-w-xl text-base leading-relaxed text-slate-300 sm:text-sm sm:text-slate-400">
           Define o cronograma do dia. Este horário é visível para organizadores e voluntários.
         </p>
         <ActionBar
+          variant="dark"
           onAdd={() => { setSelected(null); setModal('add') }}
           addLabel="Novo bloco"
           onEdit={selected ? () => setModal('edit') : undefined}
@@ -45,7 +46,7 @@ export function OrganizerSchedulePage() {
         />
       </div>
 
-      <p className="mb-3 text-xs text-slate-500">
+      <p className="mb-3 text-sm text-slate-400 sm:text-xs sm:text-slate-500">
         <span className="hidden lg:inline">Clica numa linha para editar ou apagar.</span>
         <span className="lg:hidden">Toca num bloco para editar ou apagar.</span>
       </p>

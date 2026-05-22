@@ -25,9 +25,15 @@ type Table =
   | 'event_sponsors'
   | 'revenue_entries'
 
-async function dbUpsert(table: Table, row: object): Promise<void> {
+async function dbUpsert(
+  table: Table,
+  row: object,
+  options?: { onConflict?: string },
+): Promise<void> {
   if (!supabase) return
-  const { error } = await supabase.from(table).upsert(row)
+  const { error } = await supabase
+    .from(table)
+    .upsert(row, options?.onConflict ? { onConflict: options.onConflict } : undefined)
   if (error) throw error
 }
 
@@ -38,7 +44,20 @@ async function dbDelete(table: Table, id: string): Promise<void> {
 }
 
 export async function syncEvent(event: Event, useDb: boolean) {
-  if (useDb) await dbUpsert('events', eventToDbRow(event))
+  if (!useDb || !supabase) return
+
+  const row = eventToDbRow(event)
+  const { data, error } = await supabase
+    .from('events')
+    .update(row)
+    .eq('id', event.id)
+    .select('id')
+    .maybeSingle()
+
+  if (error) throw error
+  if (data?.id) return
+
+  await dbUpsert('events', row, { onConflict: 'id' })
 }
 
 export async function syncSchedule(block: ScheduleBlock, useDb: boolean) {

@@ -34,15 +34,15 @@ export function OrganizerLogisticsPage() {
       <section>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-white uppercase">Em aberto</h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <h2 className="text-xl font-bold text-white uppercase sm:text-xl">Em aberto</h2>
+            <p className="mt-1.5 text-base leading-relaxed text-slate-300 sm:text-sm sm:text-slate-400">
               Necessidades à espera de voluntário («eu levo»).
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowAdd(true)}
-            className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-2.5 text-sm font-medium text-white sm:w-auto"
+            className="inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-3 text-sm font-bold text-white sm:min-h-11 sm:w-auto sm:py-2.5"
           >
             <Plus className="h-4 w-4" />
             Nova necessidade

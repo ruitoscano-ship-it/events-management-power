@@ -16,6 +16,7 @@ export function EventSettingsForm() {
   const [editionLabel, setEditionLabel] = useState(e.edition_label ?? '')
   const [saving, setSaving] = useState(false)
   const [savedNotice, setSavedNotice] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     setName(e.name)
@@ -39,8 +40,9 @@ export function EventSettingsForm() {
     return () => window.clearTimeout(t)
   }, [savedNotice])
 
-  function clearSavedNotice() {
+  function clearFeedback() {
     setSavedNotice(false)
+    setSaveError(null)
   }
 
   async function handleSubmit(ev: React.FormEvent) {
@@ -48,22 +50,26 @@ export function EventSettingsForm() {
     const trimmedName = name.trim()
     if (!trimmedName) return
     setSaving(true)
-    const pairs = pairsCount ? parseInt(pairsCount, 10) : null
+    setSaveError(null)
+    setSavedNotice(false)
+    const pairs = pairsCount.trim() ? parseInt(pairsCount, 10) : null
     const updated: Event = {
       ...e,
       name: trimmedName,
       event_date: eventDate,
-      venue: venue || null,
-      pairs_count: Number.isNaN(pairs as number) ? null : pairs,
+      venue: venue.trim() || null,
+      pairs_count:
+        pairs != null && !Number.isNaN(pairs) && pairs >= 0 ? pairs : null,
       day_label: dayLabelFromDate(eventDate),
-      edition_label: editionLabel || null,
+      edition_label: editionLabel.trim() || null,
     }
-    try {
-      await saveEvent(updated)
-      setSavedNotice(true)
-    } finally {
-      setSaving(false)
+    const err = await saveEvent(updated)
+    setSaving(false)
+    if (err) {
+      setSaveError(err)
+      return
     }
+    setSavedNotice(true)
   }
 
   return (
@@ -74,7 +80,7 @@ export function EventSettingsForm() {
           className={darkInput}
           value={name}
           onChange={(ev) => {
-            clearSavedNotice()
+            clearFeedback()
             setName(ev.target.value)
           }}
           placeholder="Campeonato Nacional…"
@@ -88,7 +94,7 @@ export function EventSettingsForm() {
           className={darkInput}
           value={eventDate}
           onChange={(ev) => {
-            clearSavedNotice()
+            clearFeedback()
             setEventDate(ev.target.value)
           }}
           required
@@ -100,7 +106,7 @@ export function EventSettingsForm() {
           className={darkInput}
           value={venue}
           onChange={(ev) => {
-            clearSavedNotice()
+            clearFeedback()
             setVenue(ev.target.value)
           }}
           placeholder="Cascais, Porto…"
@@ -115,7 +121,7 @@ export function EventSettingsForm() {
           className={darkInput}
           value={pairsCount}
           onChange={(ev) => {
-            clearSavedNotice()
+            clearFeedback()
             setPairsCount(ev.target.value)
           }}
           placeholder="192"
@@ -127,7 +133,7 @@ export function EventSettingsForm() {
           className={darkInput}
           value={editionLabel}
           onChange={(ev) => {
-            clearSavedNotice()
+            clearFeedback()
             setEditionLabel(ev.target.value)
           }}
           placeholder="FPDD — EDIÇÃO 2026"
@@ -142,6 +148,15 @@ export function EventSettingsForm() {
           })}
         </span>
       </p>
+
+      {saveError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-sm text-red-300"
+        >
+          <span>{saveError}</span>
+        </div>
+      )}
 
       {savedNotice && (
         <div

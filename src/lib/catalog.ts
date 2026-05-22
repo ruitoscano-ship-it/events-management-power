@@ -122,6 +122,41 @@ export function listEventSummaries(
     .sort((a, b) => b.event_date.localeCompare(a.event_date))
 }
 
+/** Atualiza metadados do evento no catálogo (lista + cache) sem perder schedule/volunteers. */
+export function patchCatalogEventMetadata(
+  catalog: EventCatalog,
+  event: Event,
+): EventCatalog {
+  const existing = catalog.events[event.id]
+  if (!existing) {
+    return {
+      ...catalog,
+      events: {
+        ...catalog.events,
+        [event.id]: normalizeEventData({
+          event,
+          schedule: [],
+          volunteers: [],
+          availability: [],
+          contributions: [],
+          tasks: [],
+          venueLayout: null,
+          sponsors: [],
+          revenueEntries: [],
+          auditLog: [],
+        }),
+      },
+    }
+  }
+  return {
+    ...catalog,
+    events: {
+      ...catalog.events,
+      [event.id]: normalizeEventData({ ...existing, event }),
+    },
+  }
+}
+
 export function setEventArchivedInCatalog(
   catalog: EventCatalog,
   eventId: string,

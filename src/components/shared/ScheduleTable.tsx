@@ -39,11 +39,11 @@ export function ScheduleTable({
     <div>
       {showTitle && (
         <div className="mb-4 sm:mb-6">
-          <h2 className="text-xl font-black tracking-tight uppercase sm:text-2xl md:text-3xl">
+          <h2 className="text-2xl font-black tracking-tight uppercase sm:text-2xl md:text-3xl">
             <span className="text-white">Horário </span>
             <span className="text-[#ff2d6a]">oficial</span>
           </h2>
-          <p className="mt-1 text-sm text-slate-400 capitalize">
+          <p className="mt-1.5 text-base text-slate-300 capitalize sm:text-sm sm:text-slate-400">
             {formatEventDateLong(data.event.event_date)} — visível para toda a equipa
           </p>
         </div>
@@ -107,20 +107,20 @@ export function ScheduleTable({
                 onSelectBlock(block.id)
               }
             }}
-            className={cardClass(block.id)}
+            className={`${cardClass(block.id)} p-4 sm:p-4`}
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs text-slate-400">
+              <span className="font-mono text-sm text-slate-300 sm:text-xs sm:text-slate-400">
                 {formatTimeRange(block.starts_at, block.ends_at)}
               </span>
               <CategoryBadge category={block.category} />
             </div>
-            <h3 className="mt-2 font-medium text-white">{block.title}</h3>
+            <h3 className="mt-2 text-base font-semibold text-white sm:font-medium">{block.title}</h3>
             {block.description && (
-              <p className="text-xs text-slate-500">{block.description}</p>
+              <p className="text-sm text-slate-400 sm:text-xs sm:text-slate-500">{block.description}</p>
             )}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-slate-500 uppercase">
+              <p className="text-sm text-slate-400 uppercase sm:text-xs sm:text-slate-500">
                 {block.location ?? '—'}
               </p>
               <VolunteerAvatars volunteers={volunteersForBlock(data, block.id)} />

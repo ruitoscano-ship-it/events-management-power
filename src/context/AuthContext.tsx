@@ -14,6 +14,7 @@ import {
   isEventArchived,
   resetCatalogCacheForSync,
   saveCatalog,
+  patchCatalogEventMetadata,
   setEventArchivedInCatalog,
 } from '../lib/catalog'
 import { syncEvent } from '../lib/persistence'
@@ -25,7 +26,7 @@ import {
   loginVolunteerAccount,
   registerVolunteerAccount,
 } from '../lib/volunteerAuth'
-import type { EventCatalog, PortalMode, VolunteerAccount } from '../types'
+import type { Event, EventCatalog, PortalMode, VolunteerAccount } from '../types'
 
 const AUTH_KEY = 'eventflow-auth-v1'
 
@@ -109,6 +110,7 @@ interface AuthContextValue {
   selectEvent: (eventId: string) => Promise<void>
   archiveEvent: (eventId: string) => Promise<string | null>
   restoreEvent: (eventId: string) => Promise<string | null>
+  patchCatalogEvent: (event: Event) => void
   clearActiveEvent: () => void
   exitToEntry: () => void
 }
@@ -348,6 +350,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persist(defaultAuth())
   }, [persist])
 
+  const patchCatalogEvent = useCallback((event: Event) => {
+    setCatalog((prev) => {
+      const next = patchCatalogEventMetadata(prev, event)
+      saveCatalog(next, isSupabaseConfigured ? 'supabase' : 'local')
+      return next
+    })
+  }, [])
+
   const value = useMemo(
     () => ({
       catalog,
@@ -373,6 +383,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       selectEvent,
       archiveEvent,
       restoreEvent,
+      patchCatalogEvent,
       clearActiveEvent,
       exitToEntry,
     }),
@@ -396,6 +407,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       selectEvent,
       archiveEvent,
       restoreEvent,
+      patchCatalogEvent,
       clearActiveEvent,
       exitToEntry,
     ],
