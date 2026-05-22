@@ -1,3 +1,4 @@
+import { eventToDbRow } from './dbMappers'
 import { supabase } from './supabase'
 import { venueLayoutToDbPayload } from './venueLayout'
 import type {
@@ -37,7 +38,7 @@ async function dbDelete(table: Table, id: string): Promise<void> {
 }
 
 export async function syncEvent(event: Event, useDb: boolean) {
-  if (useDb) await dbUpsert('events', event)
+  if (useDb) await dbUpsert('events', eventToDbRow(event))
 }
 
 export async function syncSchedule(block: ScheduleBlock, useDb: boolean) {

@@ -37,6 +37,23 @@ export function mapEventRow(row: Record<string, unknown>): Event {
           : null,
     edition_label:
       row.edition_label != null ? String(row.edition_label) : null,
+    archived_at:
+      row.archived_at != null ? String(row.archived_at) : null,
+  }
+}
+
+export function eventToDbRow(event: Event): Record<string, unknown> {
+  return {
+    id: event.id,
+    name: event.name,
+    description: event.description,
+    venue: event.venue,
+    event_date: event.event_date,
+    sport_type: event.sport_type,
+    pairs_count: event.pairs_count ?? null,
+    day_label: event.day_label ?? null,
+    edition_label: event.edition_label ?? null,
+    archived_at: event.archived_at ?? null,
   }
 }
 

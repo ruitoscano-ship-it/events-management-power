@@ -10,9 +10,12 @@ import {
 import {
   bootstrapDataSync,
   ensureVolunteerInEvent,
+  isEventArchived,
   loadCatalog,
   saveCatalog,
+  setEventArchivedInCatalog,
 } from '../lib/catalog'
+import { syncEvent } from '../lib/persistence'
 import { hydrateCatalogFromSupabase } from '../lib/supabaseData'
 import { readSyncMeta } from '../lib/syncMeta'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -102,6 +105,8 @@ interface AuthContextValue {
   loginVolunteer: (phone: string, pin: string) => Promise<string | null>
   logoutVolunteer: () => void
   selectEvent: (eventId: string) => Promise<void>
+  archiveEvent: (eventId: string) => Promise<string | null>
+  restoreEvent: (eventId: string) => Promise<string | null>
   clearActiveEvent: () => void
   exitToEntry: () => void
 }
@@ -264,8 +269,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [persist])
 
+  const setCatalogArchived = useCallback(
+    async (eventId: string, archived: boolean) => {
+      const entry = catalog.events[eventId]
+      if (!entry) return 'Evento não encontrado.'
+      if (archived && isEventArchived(entry.event)) {
+        return 'Este evento já está arquivado.'
+      }
+      if (!archived && !isEventArchived(entry.event)) {
+        return 'Este evento não está arquivado.'
+      }
+      const next = setEventArchivedInCatalog(catalog, eventId, archived)
+      const updated = next.events[eventId].event
+      try {
+        if (isSupabaseConfigured) {
+          await syncEvent(updated, true)
+        }
+        saveCatalog(next, isSupabaseConfigured ? 'supabase' : 'local')
+        setCatalog(next)
+        if (auth.activeEventId === eventId) {
+          persist({
+            ...auth,
+            activeEventId: null,
+            volunteerIdInEvent: null,
+          })
+        }
+        return null
+      } catch (e) {
+        console.error('[archive event]', e)
+        return 'Não foi possível guardar no servidor. Tenta novamente.'
+      }
+    },
+    [auth, catalog, persist],
+  )
+
+  const archiveEvent = useCallback(
+    (eventId: string) => setCatalogArchived(eventId, true),
+    [setCatalogArchived],
+  )
+
+  const restoreEvent = useCallback(
+    (eventId: string) => setCatalogArchived(eventId, false),
+    [setCatalogArchived],
+  )
+
   const selectEvent = useCallback(
     async (eventId: string) => {
+      const entry = catalog.events[eventId]
+      if (entry && isEventArchived(entry.event)) return
+
       if (auth.mode === 'volunteer' && volunteerAccount) {
         const { catalog: next, volunteerId } = await ensureVolunteerInEvent(
           catalog,
@@ -323,6 +375,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginVolunteer,
       logoutVolunteer,
       selectEvent,
+      archiveEvent,
+      restoreEvent,
       clearActiveEvent,
       exitToEntry,
     }),
@@ -343,6 +397,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginVolunteer,
       logoutVolunteer,
       selectEvent,
+      archiveEvent,
+      restoreEvent,
       clearActiveEvent,
       exitToEntry,
     ],

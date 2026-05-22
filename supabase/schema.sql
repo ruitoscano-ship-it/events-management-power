@@ -13,6 +13,8 @@ create table events (
   sport_type text default 'danca_salao',
   pairs_count int,
   day_label text,
+  edition_label text,
+  archived_at timestamptz,
   created_at timestamptz default now()
 );
 

@@ -12,7 +12,13 @@ import {
   purgeObsoleteCaches,
   type DataSourceTag,
 } from './syncMeta'
-import type { EventCatalog, EventData, Volunteer, VolunteerAccount } from '../types'
+import type {
+  Event,
+  EventCatalog,
+  EventData,
+  Volunteer,
+  VolunteerAccount,
+} from '../types'
 
 export const PAST_EVENT_ID = 'a0000000-0000-4000-8000-000000000002'
 
@@ -111,10 +117,38 @@ export function saveCatalog(
   markCatalogSynced(source)
 }
 
-export function listEventSummaries(catalog: EventCatalog) {
+export function isEventArchived(event: Event): boolean {
+  return Boolean(event.archived_at)
+}
+
+export function listEventSummaries(
+  catalog: EventCatalog,
+  options?: { includeArchived?: boolean },
+) {
   return Object.values(catalog.events)
     .map((d) => d.event)
+    .filter((e) => options?.includeArchived || !isEventArchived(e))
     .sort((a, b) => b.event_date.localeCompare(a.event_date))
+}
+
+export function setEventArchivedInCatalog(
+  catalog: EventCatalog,
+  eventId: string,
+  archived: boolean,
+): EventCatalog {
+  const data = catalog.events[eventId]
+  if (!data) throw new Error('Evento não encontrado')
+  const nextData = normalizeEventData({
+    ...data,
+    event: {
+      ...data.event,
+      archived_at: archived ? new Date().toISOString() : null,
+    },
+  })
+  return {
+    ...catalog,
+    events: { ...catalog.events, [eventId]: nextData },
+  }
 }
 
 export function isEventOngoing(eventDate: string, today = new Date()): boolean {

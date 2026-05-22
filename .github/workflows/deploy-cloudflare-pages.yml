@@ -1,5 +1,6 @@
-# Auto-deploy em cada push a main (alternativa ao Git nativo da Cloudflare).
-# Secrets em GitHub: Settings → Secrets and variables → Actions
+# Auto-deploy on push to main. Requires GitHub Actions secrets (see README).
+# If you use Cloudflare “Connect to Git” builds instead, disable this workflow
+# or you will deploy twice (dashboard build + this job).
 name: Deploy Cloudflare Pages
 
 on:
@@ -22,18 +23,40 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Verify Cloudflare secrets
+        run: |
+          missing=0
+          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub Actions secret: $name (Settings → Secrets and variables → Actions)"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - run: npm ci
 
       - name: Build
         run: npm run build
         env:
-          NODE_VERSION: '22'
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
+      - name: Verify build output
+        run: test -f dist/index.html
+
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=events-management-power
+        run: |
+          npx wrangler pages deploy dist \
+            --project-name=events-management-power \
+            --branch=main \
+            --commit-hash="${GITHUB_SHA}"
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -1,22 +1,33 @@
 import { Calendar, MapPin, Users } from 'lucide-react'
-import { isEventOngoing } from '../../lib/catalog'
+import type { ReactNode } from 'react'
+import { isEventArchived, isEventOngoing } from '../../lib/catalog'
 import { formatEventDateLine } from '../../lib/eventDate'
 import type { Event } from '../../types'
 
 interface Props {
   event: Event
   onSelect: () => void
+  footer?: ReactNode
+  /** When false, card is not clickable (e.g. archived list). */
+  selectable?: boolean
 }
 
-export function EventCard({ event, onSelect }: Props) {
+export function EventCard({ event, onSelect, footer, selectable = true }: Props) {
   const ongoing = isEventOngoing(event.event_date)
+  const archived = isEventArchived(event)
   const dateLine = formatEventDateLine(event)
 
   return (
+    <div className="w-full rounded-xl border border-[#2a2a3d] bg-[#12121c] overflow-hidden">
     <button
       type="button"
-      onClick={onSelect}
-      className="w-full rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4 text-left transition-colors hover:border-[#ff2d6a]/50 hover:bg-[#1a1a28] active:scale-[0.99]"
+      onClick={selectable ? onSelect : undefined}
+      disabled={!selectable}
+      className={`w-full p-4 text-left transition-colors ${
+        selectable
+          ? 'hover:border-[#ff2d6a]/50 hover:bg-[#1a1a28] active:scale-[0.99]'
+          : 'cursor-default opacity-80'
+      }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -31,12 +42,14 @@ export function EventCard({ event, onSelect }: Props) {
         </div>
         <span
           className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-            ongoing
-              ? 'bg-emerald-500/20 text-emerald-400'
-              : 'bg-slate-500/20 text-slate-400'
+            archived
+              ? 'bg-amber-500/20 text-amber-400'
+              : ongoing
+                ? 'bg-emerald-500/20 text-emerald-400'
+                : 'bg-slate-500/20 text-slate-400'
           }`}
         >
-          {ongoing ? 'Em curso' : 'Passado'}
+          {archived ? 'Arquivado' : ongoing ? 'Em curso' : 'Passado'}
         </span>
       </div>
       <ul className="mt-3 space-y-1.5 text-xs text-slate-400">
@@ -58,5 +71,9 @@ export function EventCard({ event, onSelect }: Props) {
         )}
       </ul>
     </button>
+    {footer ? (
+      <div className="border-t border-[#2a2a3d] px-4 py-2">{footer}</div>
+    ) : null}
+    </div>
   )
 }

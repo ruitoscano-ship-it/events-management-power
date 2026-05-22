@@ -1,7 +1,10 @@
 import { format, parseISO } from 'date-fns'
 import { pt } from 'date-fns/locale'
+import { Archive } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useAuth } from '../../context/AuthContext'
 import { useEvent } from '../../context/EventContext'
+import { isEventArchived, isEventOngoing } from '../../lib/catalog'
 import { isActiveVolunteer } from '../../lib/volunteers'
 import { EventSettingsForm } from '../forms/EventSettingsForm'
 import { VolunteerForm } from '../forms/VolunteerForm'
@@ -10,8 +13,13 @@ import type { Volunteer } from '../../types'
 
 export function OrganizerAdminPage() {
   const { data, setVolunteerActive } = useEvent()
+  const { archiveEvent, clearActiveEvent } = useAuth()
   const [userTab, setUserTab] = useState<'active' | 'inactive'>('active')
   const [editVolunteer, setEditVolunteer] = useState<Volunteer | null>(null)
+  const [archiving, setArchiving] = useState(false)
+
+  const canArchive =
+    !isEventArchived(data.event) && !isEventOngoing(data.event.event_date)
 
   const active = useMemo(
     () => data.volunteers.filter(isActiveVolunteer),
@@ -40,6 +48,41 @@ export function OrganizerAdminPage() {
         </p>
         <EventSettingsForm />
       </section>
+
+      {canArchive && (
+        <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-6">
+          <h2 className="text-lg font-bold text-white uppercase">Arquivar evento</h2>
+          <p className="mt-1 text-sm text-slate-400 mb-4">
+            Remove este evento da lista de escolha (organizadores e voluntários). Os dados
+            mantêm-se na base de dados e podes restaurar mais tarde no ecrã de eventos.
+          </p>
+          <button
+            type="button"
+            disabled={archiving}
+            onClick={async () => {
+              if (
+                !window.confirm(
+                  `Arquivar «${data.event.name}»?\n\nDeixa de aparecer na lista para toda a equipa.`,
+                )
+              ) {
+                return
+              }
+              setArchiving(true)
+              const err = await archiveEvent(data.event.id)
+              setArchiving(false)
+              if (err) {
+                window.alert(err)
+                return
+              }
+              clearActiveEvent()
+            }}
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-amber-500/50 bg-amber-500/15 px-4 py-2 text-xs font-bold uppercase tracking-wide text-amber-200 hover:bg-amber-500/25 disabled:opacity-50"
+          >
+            <Archive className="h-4 w-4" />
+            {archiving ? 'A arquivar…' : 'Arquivar evento'}
+          </button>
+        </section>
+      )}
 
       <section>
         <h2 className="text-xl font-bold text-white uppercase mb-4">Utilizadores</h2>

@@ -1,4 +1,4 @@
-import { ArrowLeft, LogOut, RefreshCw } from 'lucide-react'
+import { Archive, ArrowLeft, LogOut, RefreshCw, Undo2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { isEventOngoing, listEventSummaries } from '../lib/catalog'
@@ -22,16 +22,46 @@ export function EventPickerPage({ variant }: Props) {
     logoutVolunteer,
     forceSyncFromServer,
     lastSyncedAt,
+    archiveEvent,
+    restoreEvent,
   } = useAuth()
   const [syncing, setSyncing] = useState(false)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
 
-  const { ongoing, past } = useMemo(() => {
+  const { ongoing, past, archived } = useMemo(() => {
     const all = listEventSummaries(catalog)
+    const archivedAll = listEventSummaries(catalog, { includeArchived: true }).filter(
+      (e) => e.archived_at,
+    )
     return {
       ongoing: all.filter((e) => isEventOngoing(e.event_date)),
       past: all.filter((e) => !isEventOngoing(e.event_date)),
+      archived: archivedAll,
     }
   }, [catalog])
+
+  async function handleArchive(eventId: string, name: string) {
+    if (
+      !window.confirm(
+        `Arquivar «${name}»?\n\nDeixa de aparecer na lista para organizadores e voluntários. Os dados mantêm-se na base de dados.`,
+      )
+    ) {
+      return
+    }
+    setBusyId(eventId)
+    const err = await archiveEvent(eventId)
+    setBusyId(null)
+    if (err) window.alert(err)
+  }
+
+  async function handleRestore(eventId: string, name: string) {
+    if (!window.confirm(`Restaurar «${name}» na lista de eventos?`)) return
+    setBusyId(eventId)
+    const err = await restoreEvent(eventId)
+    setBusyId(null)
+    if (err) window.alert(err)
+  }
 
   function handleBack() {
     if (variant === 'organizer') logoutOrganizer()
@@ -135,10 +165,64 @@ export function EventPickerPage({ variant }: Props) {
                   <EventCard
                     event={event}
                     onSelect={() => void selectEvent(event.id)}
+                    footer={
+                      variant === 'organizer' ? (
+                        <button
+                          type="button"
+                          disabled={busyId === event.id}
+                          onClick={() => void handleArchive(event.id, event.name)}
+                          className="inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-amber-300 hover:bg-amber-500/20 disabled:opacity-50"
+                        >
+                          <Archive className="h-3.5 w-3.5" />
+                          {busyId === event.id ? 'A arquivar…' : 'Arquivar'}
+                        </button>
+                      ) : undefined
+                    }
                   />
                 </li>
               ))}
             </ul>
+            {variant === 'organizer' && (
+              <p className="mt-3 text-[11px] text-slate-600">
+                Eventos arquivados deixam de aparecer aqui para toda a equipa.
+              </p>
+            )}
+          </section>
+        )}
+
+        {!catalogLoading && variant === 'organizer' && archived.length > 0 && (
+          <section className="mt-8">
+            <button
+              type="button"
+              onClick={() => setShowArchived((v) => !v)}
+              className="text-xs font-bold tracking-widest text-slate-500 uppercase hover:text-white"
+            >
+              Arquivados ({archived.length}) {showArchived ? '▾' : '▸'}
+            </button>
+            {showArchived && (
+              <ul className="mt-3 grid gap-3 sm:grid-cols-2 motion-stagger">
+                {archived.map((event) => (
+                  <li key={event.id}>
+                    <EventCard
+                      event={event}
+                      selectable={false}
+                      onSelect={() => {}}
+                      footer={
+                        <button
+                          type="button"
+                          disabled={busyId === event.id}
+                          onClick={() => void handleRestore(event.id, event.name)}
+                          className="inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+                        >
+                          <Undo2 className="h-3.5 w-3.5" />
+                          {busyId === event.id ? 'A restaurar…' : 'Restaurar'}
+                        </button>
+                      }
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 

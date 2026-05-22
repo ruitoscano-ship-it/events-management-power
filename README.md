@@ -102,14 +102,26 @@ node --env-file=.env scripts/configure-pages-env.mjs
 
 Workflow `.github/workflows/deploy-cloudflare-pages.yml` — deploy em cada push a `main`.
 
-Secrets em **GitHub** → repo → **Settings** → **Secrets and variables** → **Actions**:
+**Escolhe um método de deploy:** se já tens **Connect to Git** na Cloudflare (Opção A1), desativa este workflow (apagar o ficheiro ou `on: workflow_dispatch` apenas) para evitar dois deploys e erros duplicados.
+
+Secrets em **GitHub** → repo → **Settings** → **Secrets and variables** → **Actions** (todos obrigatórios para o job passar):
 
 | Secret | Valor |
 |--------|--------|
-| `CLOUDFLARE_API_TOKEN` | API token (Pages Edit) |
+| `CLOUDFLARE_API_TOKEN` | API token com permissão **Cloudflare Pages → Edit** |
 | `CLOUDFLARE_ACCOUNT_ID` | `fcb192819ff6c403c3aae47e508948be` |
-| `VITE_SUPABASE_URL` | igual ao `.env` |
-| `VITE_SUPABASE_ANON_KEY` | igual ao `.env` |
+| `VITE_SUPABASE_URL` | igual ao `.env` (opcional; sem isto o build usa modo demo) |
+| `VITE_SUPABASE_ANON_KEY` | igual ao `.env` (opcional) |
+
+#### GitHub Actions: `npx` / deploy falha
+
+| Sintoma | Causa provável | Correção |
+|--------|----------------|----------|
+| `Missing GitHub Actions secret: CLOUDFLARE_*` | Secrets não criados no repo | Adicionar os 4 secrets na tabela acima |
+| `Authentication error` / `10000` | Token inválido ou sem permissão Pages | Criar novo token em [API Tokens](https://dash.cloudflare.com/profile/api-tokens) → template **Edit Cloudflare Pages** |
+| `Project not found` | Nome ou conta errados | Confirmar projeto `events-management-power` na mesma conta que `CLOUDFLARE_ACCOUNT_ID` |
+| Build OK, deploy falha com `wrangler-action` | Bug/limitação da action antiga | O workflow usa `npx wrangler` do `package.json` (faz pull desta correção) |
+| Dois deploys / comportamento estranho | Cloudflare Git **e** GitHub Actions ativos | Usar só A1 **ou** só A2 |
 
 ### Opção B: CLI (Wrangler)
 

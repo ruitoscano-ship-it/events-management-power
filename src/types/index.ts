@@ -20,6 +20,8 @@ export type UserRole = 'organizer' | 'volunteer'
 
 export type AuditAction =
   | 'event.updated'
+  | 'event.archived'
+  | 'event.restored'
   | 'volunteer.created'
   | 'volunteer.updated'
   | 'volunteer.deactivated'
@@ -53,6 +55,8 @@ export interface Event {
   pairs_count?: number | null
   day_label?: string | null
   edition_label?: string | null
+  /** When set, event is hidden from the picker (organizers can restore). */
+  archived_at?: string | null
 }
 
 export interface VolunteerAccount {
