@@ -67,3 +67,27 @@ if (evErr) {
 }
 
 console.log('\n✅ Ligação completa. Eventos:', events?.length ? events : '(vazio — corre seed.sql)')
+
+const { data: regData, error: regErr } = await supabase.rpc('register_volunteer', {
+  p_name: 'Teste Auto',
+  p_phone: '999000111',
+  p_pin: '1234',
+})
+if (regErr?.message?.includes('schema cache') || regErr?.code === 'PGRST202') {
+  console.error('\n❌ Funções de voluntário em falta → executa supabase/volunteer_accounts.sql')
+  process.exit(1)
+}
+if (regErr) {
+  console.error('\n❌ register_volunteer:', regErr.message)
+} else if (regData?.ok) {
+  console.log('✅ register_volunteer (teste):', regData.account_id)
+  const { data: loginData, error: loginErr } = await supabase.rpc('login_volunteer', {
+    p_phone: '999000111',
+    p_pin: '1234',
+  })
+  if (loginErr) console.error('❌ login_volunteer:', loginErr.message)
+  else if (loginData?.ok) console.log('✅ login_volunteer (teste): OK')
+  else console.error('❌ login_volunteer:', loginData?.error)
+} else {
+  console.log('ℹ️ register_volunteer:', regData?.error ?? regData)
+}

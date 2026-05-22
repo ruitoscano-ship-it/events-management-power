@@ -30,7 +30,7 @@ export function OrganizerLogisticsPage() {
     data.volunteers.find((v) => v.id === id)?.name ?? '—'
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 space-y-10">
+    <div className="page-container space-y-8 sm:space-y-10">
       <section>
         <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
           <div>

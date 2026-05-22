@@ -37,6 +37,7 @@ create table schedule_blocks (
 create table volunteers (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references events(id) on delete cascade,
+  account_id uuid,
   name text not null,
   email text,
   phone text,

@@ -26,6 +26,7 @@ export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
       {
         id: initial?.id ?? newId(),
         event_id: data.event.id,
+        account_id: initial?.account_id ?? null,
         name,
         email: email || null,
         phone: phone || null,

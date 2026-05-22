@@ -55,9 +55,19 @@ export interface Event {
   edition_label?: string | null
 }
 
+export interface VolunteerAccount {
+  id: string
+  name: string
+  phone: string
+  /** Apenas em localStorage (demo); nunca exposto pelo Supabase */
+  pin_hash?: string
+  created_at: string
+}
+
 export interface Volunteer {
   id: string
   event_id: string
+  account_id?: string | null
   name: string
   email: string | null
   phone: string | null
@@ -65,6 +75,13 @@ export interface Volunteer {
   notes: string | null
   active: boolean
 }
+
+export interface EventCatalog {
+  accounts: VolunteerAccount[]
+  events: Record<string, EventData>
+}
+
+export type PortalMode = 'organizer' | 'volunteer'
 
 export interface ScheduleBlock {
   id: string

@@ -1,17 +1,15 @@
 import { useMemo, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useEvent } from '../../context/EventContext'
-import { useRole } from '../../context/RoleContext'
+import { useAuth } from '../../context/AuthContext'
 import { formatTimeRange } from '../../lib/format'
 import { AvailabilityForm } from '../forms/AvailabilityForm'
 import { Modal } from '../ui/Modal'
 
-const DEFAULT_VOLUNTEER = 'v-ma'
-
 export function VolunteerAvailabilityPage() {
   const { data, deleteAvailability } = useEvent()
-  const { volunteerId } = useRole()
-  const vid = volunteerId ?? DEFAULT_VOLUNTEER
+  const { volunteerIdInEvent } = useAuth()
+  const vid = volunteerIdInEvent!
   const [showAdd, setShowAdd] = useState(false)
 
   const volunteer = data.volunteers.find((v) => v.id === vid)
@@ -28,7 +26,7 @@ export function VolunteerAvailabilityPage() {
   )
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="page-container-narrow max-w-2xl">
       <h2 className="text-2xl font-black text-white uppercase">
         A minha <span className="text-[#ff2d6a]">disponibilidade</span>
       </h2>

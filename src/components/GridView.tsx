@@ -54,31 +54,76 @@ export function GridView() {
     return map
   }, [data.tasks])
 
+  const volunteers = activeVolunteers(data.volunteers)
+
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">Grelha horária</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        Grelha horária
+      </h2>
       <p className="mt-1 text-sm text-slate-500">
-        Disponibilidade (azul) e atividades (violeta) por voluntário — {HOUR_START}:00 a {HOUR_END}:00.
+        Disponibilidade (azul) e atividades (violeta) — {HOUR_START}:00 a {HOUR_END}:00.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-4 text-xs text-slate-600">
+      <div className="mt-4 flex flex-wrap gap-4 text-xs text-slate-500">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-6 rounded bg-brand-400" /> Disponível
+          <span className="h-3 w-6 rounded bg-sky-400" /> Disponível
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-6 rounded bg-violet-400" /> Atividade
         </span>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="min-w-[640px]">
-          <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: '120px 1fr' }}>
-            <div className="p-2 text-xs font-medium text-slate-400" />
-            <div className="relative flex border-l border-slate-100">
+      <div className="mt-6 space-y-3 md:hidden">
+        {volunteers.map((v) => {
+          const slots = availByVolunteer[v.id] ?? []
+          const tasks = tasksByVolunteer[v.id] ?? []
+          return (
+            <article
+              key={v.id}
+              className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4"
+            >
+              <p className="font-medium text-white">{v.name}</p>
+              {v.role && <p className="text-[10px] text-slate-500">{v.role}</p>}
+              {slots.length === 0 && tasks.length === 0 ? (
+                <p className="mt-2 text-xs text-slate-500">Sem janelas registadas</p>
+              ) : (
+                <ul className="mt-3 space-y-2 text-xs">
+                  {slots.map((s) => (
+                    <li key={s.id} className="flex gap-2 text-sky-300">
+                      <span className="shrink-0 font-mono text-slate-500">DISP</span>
+                      <span>
+                        {formatTime(s.available_from)} – {formatTime(s.available_until)}
+                      </span>
+                    </li>
+                  ))}
+                  {tasks.map((t) => (
+                    <li key={t.id} className="flex gap-2 text-violet-300">
+                      <span className="shrink-0 font-mono text-slate-500">TAREFA</span>
+                      <span>
+                        {t.title}: {formatTime(t.starts_at!)} – {formatTime(t.ends_at!)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="mt-6 hidden overflow-x-auto rounded-2xl border border-[#2a2a3d] bg-[#12121c] md:block">
+        <div className="min-w-[560px]">
+          <div
+            className="grid border-b border-[#2a2a3d]"
+            style={{ gridTemplateColumns: 'minmax(100px, 140px) 1fr' }}
+          >
+            <div className="p-2 text-xs font-medium text-slate-500" />
+            <div className="relative flex border-l border-[#2a2a3d]">
               {hours.map((h) => (
                 <div
                   key={h}
-                  className="flex-1 border-l border-slate-50 px-0.5 py-2 text-center text-[10px] font-mono text-slate-400 first:border-l-0"
+                  className="flex-1 border-l border-[#2a2a3d]/40 px-0.5 py-2 text-center text-[10px] font-mono text-slate-500 first:border-l-0"
                 >
                   {hourLabel(h)}
                 </div>
@@ -86,26 +131,28 @@ export function GridView() {
             </div>
           </div>
 
-          {activeVolunteers(data.volunteers).map((v) => {
+          {volunteers.map((v) => {
             const slots = availByVolunteer[v.id] ?? []
             const tasks = tasksByVolunteer[v.id] ?? []
             return (
               <div
                 key={v.id}
-                className="grid border-b border-slate-50 last:border-b-0"
-                style={{ gridTemplateColumns: '120px 1fr' }}
+                className="grid border-b border-[#2a2a3d]/40 last:border-b-0"
+                style={{ gridTemplateColumns: 'minmax(100px, 140px) 1fr' }}
               >
                 <div className="flex flex-col justify-center p-2">
-                  <span className="text-sm font-medium text-slate-800 leading-tight">{v.name}</span>
+                  <span className="text-sm font-medium leading-tight text-slate-200">
+                    {v.name}
+                  </span>
                   {v.role && (
-                    <span className="text-[10px] text-slate-400">{v.role}</span>
+                    <span className="text-[10px] text-slate-500">{v.role}</span>
                   )}
                 </div>
-                <div className="relative h-14 border-l border-slate-100">
+                <div className="relative h-14 border-l border-[#2a2a3d]">
                   {hours.map((h) => (
                     <div
                       key={h}
-                      className="absolute top-0 bottom-0 border-l border-slate-50"
+                      className="absolute top-0 bottom-0 border-l border-[#2a2a3d]/30"
                       style={{ left: `${pctInDay(h * 60)}%` }}
                     />
                   ))}
@@ -113,7 +160,7 @@ export function GridView() {
                     <div
                       key={s.id}
                       className="absolute top-2 h-4 rounded opacity-90"
-                      style={barStyle(s.available_from, s.available_until, '#60a5fa')}
+                      style={barStyle(s.available_from, s.available_until, '#38bdf8')}
                       title={`Disponível ${formatTime(s.available_from)} – ${formatTime(s.available_until)}`}
                     />
                   ))}

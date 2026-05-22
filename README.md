@@ -30,7 +30,11 @@ VITE_SUPABASE_URL=https://xxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 ```
 
-4. Reiniciar `npm run dev`
+4. SQL Editor → executar também `supabase/volunteer_accounts.sql` (contas com PIN em hash)
+5. Testar: `npm run test:supabase`
+6. Reiniciar `npm run dev`
+
+**Voluntários:** registo/login usa funções `register_volunteer` / `login_volunteer` no Postgres (`pgcrypto`). O PIN nunca é guardado em texto plano. Duplicados: telefone já registado, ou mesmo telefone+código (sugere «Entrar»).
 
 ## Deploy — Cloudflare Pages
 

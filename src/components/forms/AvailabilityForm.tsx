@@ -55,7 +55,7 @@ export function AvailabilityForm({
           </select>
         </FormField>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="form-grid-2">
         <FormField label="Disponível desde">
           <input type="datetime-local" className={inputClass} value={from} onChange={(e) => setFrom(e.target.value)} required />
         </FormField>

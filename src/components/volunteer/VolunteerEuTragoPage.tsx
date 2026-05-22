@@ -1,15 +1,13 @@
 import { Plus, X } from 'lucide-react'
 import { useMemo } from 'react'
 import { useEvent } from '../../context/EventContext'
-import { useRole } from '../../context/RoleContext'
+import { useAuth } from '../../context/AuthContext'
 import { parseDisplayQuantity } from '../../lib/volunteerDashboard'
-
-const DEFAULT_VOLUNTEER = 'v-ma'
 
 export function VolunteerEuTragoPage() {
   const { data, saveContribution } = useEvent()
-  const { volunteerId } = useRole()
-  const vid = volunteerId ?? DEFAULT_VOLUNTEER
+  const { volunteerIdInEvent } = useAuth()
+  const vid = volunteerIdInEvent!
 
   const myItems = useMemo(
     () => data.contributions.filter((c) => c.volunteer_id === vid),
@@ -33,7 +31,7 @@ export function VolunteerEuTragoPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <div className="page-container-narrow max-w-3xl">
       <h2 className="text-2xl font-black text-white uppercase">
         Eu <span className="text-[#ff2d6a]">trago</span>
       </h2>
@@ -81,13 +79,13 @@ export function VolunteerEuTragoPage() {
         <h3 className="text-sm font-bold tracking-widest text-slate-400 uppercase mb-4">
           Ainda em aberto — {openItems.length} {openItems.length === 1 ? 'item' : 'itens'}
         </h3>
-        <div className="flex flex-wrap gap-2 motion-stagger">
+        <div className="grid grid-cols-1 gap-2 motion-stagger sm:grid-cols-2">
           {openItems.map((c) => (
             <button
               key={c.id}
               type="button"
               onClick={() => claimItem(c.id)}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#2a2a3d] bg-[#1a1a28] px-4 py-3 text-left hover:border-[#ff2d6a]/60 transition-colors group"
+              className="flex w-full min-h-11 items-center gap-2 rounded-xl border border-[#2a2a3d] bg-[#1a1a28] px-4 py-3 text-left hover:border-[#ff2d6a]/60 transition-colors group"
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff2d6a]/20 text-[#ff2d6a] group-hover:bg-[#ff2d6a] group-hover:text-white">
                 <Plus className="h-4 w-4" />

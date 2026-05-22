@@ -25,11 +25,20 @@ export function ScheduleTable({
     [data.schedule],
   )
 
+  const cardClass = (id: string) =>
+    `rounded-xl border bg-[#12121c] p-4 transition-colors ${
+      onSelectBlock ? 'cursor-pointer active:scale-[0.99]' : ''
+    } ${
+      selectedId === id
+        ? 'border-[#ff2d6a]/60 bg-[#ff2d6a]/10'
+        : 'border-[#2a2a3d] hover:border-[#2a2a3d]/80'
+    }`
+
   return (
     <div>
       {showTitle && (
-        <div className="mb-6">
-          <h2 className="text-2xl font-black tracking-tight uppercase md:text-3xl">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-xl font-black tracking-tight uppercase sm:text-2xl md:text-3xl">
             <span className="text-white">Horário </span>
             <span className="text-[#ff2d6a]">oficial</span>
           </h2>
@@ -39,8 +48,8 @@ export function ScheduleTable({
         </div>
       )}
 
-      <div className="hidden md:block overflow-x-auto rounded-xl border border-[#2a2a3d] bg-[#12121c]">
-        <table className="w-full min-w-[720px] text-left text-sm">
+      <div className="hidden lg:block overflow-x-auto rounded-xl border border-[#2a2a3d] bg-[#12121c]">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
             <tr className="border-b border-[#2a2a3d] text-[10px] font-semibold tracking-widest text-slate-500 uppercase">
               <th className="px-4 py-3 w-28">Hora</th>
@@ -84,11 +93,20 @@ export function ScheduleTable({
         </table>
       </div>
 
-      <div className="md:hidden space-y-3">
+      <div className="lg:hidden space-y-3 motion-stagger">
         {sorted.map((block) => (
           <article
             key={block.id}
-            className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4"
+            role={onSelectBlock ? 'button' : undefined}
+            tabIndex={onSelectBlock ? 0 : undefined}
+            onClick={() => onSelectBlock?.(block.id)}
+            onKeyDown={(ev) => {
+              if (onSelectBlock && (ev.key === 'Enter' || ev.key === ' ')) {
+                ev.preventDefault()
+                onSelectBlock(block.id)
+              }
+            }}
+            className={cardClass(block.id)}
           >
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-xs text-slate-400">
@@ -100,7 +118,12 @@ export function ScheduleTable({
             {block.description && (
               <p className="text-xs text-slate-500">{block.description}</p>
             )}
-            <p className="mt-2 text-xs text-slate-500 uppercase">{block.location}</p>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-slate-500 uppercase">
+                {block.location ?? '—'}
+              </p>
+              <VolunteerAvatars volunteers={volunteersForBlock(data, block.id)} />
+            </div>
           </article>
         ))}
       </div>

@@ -21,8 +21,8 @@ export function OrganizerSchedulePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="page-container">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <p className="text-sm text-slate-400 max-w-xl">
           Define o cronograma do dia. Este horário é visível para organizadores e voluntários.
         </p>
@@ -45,7 +45,10 @@ export function OrganizerSchedulePage() {
         />
       </div>
 
-      <p className="mb-3 text-xs text-slate-500">Clica numa linha para editar ou apagar.</p>
+      <p className="mb-3 text-xs text-slate-500">
+        <span className="hidden lg:inline">Clica numa linha para editar ou apagar.</span>
+        <span className="lg:hidden">Toca num bloco para editar ou apagar.</span>
+      </p>
       <ScheduleTable
         showTitle
         selectedId={selected?.id ?? null}

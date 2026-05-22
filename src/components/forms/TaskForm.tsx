@@ -65,7 +65,7 @@ export function TaskForm({ initial, onDone }: Props) {
           ))}
         </select>
       </FormField>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="form-grid-2">
         <FormField label="Início">
           <input type="datetime-local" className={inputClass} value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
         </FormField>

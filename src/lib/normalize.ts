@@ -13,7 +13,11 @@ function normalizeBlock(block: ScheduleBlock): ScheduleBlock {
 }
 
 function normalizeVolunteer(v: Volunteer): Volunteer {
-  return { ...v, active: v.active !== false }
+  return {
+    ...v,
+    account_id: v.account_id ?? null,
+    active: v.active !== false,
+  }
 }
 
 function dayLabelFromDate(eventDate: string): string {

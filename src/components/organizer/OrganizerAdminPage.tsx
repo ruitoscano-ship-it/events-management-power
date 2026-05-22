@@ -32,8 +32,8 @@ export function OrganizerAdminPage() {
   )
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 space-y-12">
-      <section className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-6">
+    <div className="page-container space-y-10 sm:space-y-12">
+      <section className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4 sm:p-6">
         <h2 className="text-xl font-bold text-white uppercase">Configuração do evento</h2>
         <p className="mt-1 text-sm text-slate-400 mb-6">
           Data, local e número de pares — visíveis no cabeçalho para toda a equipa.
@@ -115,36 +115,54 @@ export function OrganizerAdminPage() {
         <p className="text-sm text-slate-400 mb-4">
           Histórico de alterações no evento, voluntários e logística.
         </p>
-        <div className="rounded-xl border border-[#2a2a3d] bg-[#12121c] overflow-hidden max-h-[420px] overflow-y-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="sticky top-0 bg-[#1a1a28] text-[10px] uppercase tracking-widest text-slate-500">
-              <tr>
-                <th className="px-4 py-2">Quando</th>
-                <th className="px-4 py-2">Ação</th>
-                <th className="px-4 py-2">Detalhe</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-4 py-6 text-slate-500">
-                    Sem entradas ainda.
-                  </td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr key={log.id} className="border-t border-[#2a2a3d]/60">
-                    <td className="px-4 py-2 font-mono text-xs text-slate-400 whitespace-nowrap">
-                      {format(parseISO(log.at), 'd MMM HH:mm', { locale: pt })}
-                    </td>
-                    <td className="px-4 py-2 text-xs text-[#ff2d6a]">{log.action}</td>
-                    <td className="px-4 py-2 text-slate-300">{log.summary}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        {logs.length === 0 ? (
+          <p className="rounded-xl border border-[#2a2a3d] bg-[#12121c] px-4 py-6 text-sm text-slate-500">
+            Sem entradas ainda.
+          </p>
+        ) : (
+          <>
+            <ul className="space-y-2 md:hidden">
+              {logs.map((log) => (
+                <li
+                  key={log.id}
+                  className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4"
+                >
+                  <p className="font-mono text-[10px] text-slate-500">
+                    {format(parseISO(log.at), 'd MMM yyyy HH:mm', { locale: pt })}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-[#ff2d6a]">{log.action}</p>
+                  <p className="mt-1 text-sm text-slate-300 break-words">{log.summary}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden md:block rounded-xl border border-[#2a2a3d] bg-[#12121c] overflow-hidden max-h-[420px] overflow-y-auto">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[480px] text-left text-sm">
+                  <thead className="sticky top-0 bg-[#1a1a28] text-[10px] uppercase tracking-widest text-slate-500">
+                    <tr>
+                      <th className="px-4 py-2 whitespace-nowrap">Quando</th>
+                      <th className="px-4 py-2">Ação</th>
+                      <th className="px-4 py-2">Detalhe</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log) => (
+                      <tr key={log.id} className="border-t border-[#2a2a3d]/60">
+                        <td className="px-4 py-2 font-mono text-xs text-slate-400 whitespace-nowrap">
+                          {format(parseISO(log.at), 'd MMM HH:mm', { locale: pt })}
+                        </td>
+                        <td className="px-4 py-2 text-xs text-[#ff2d6a] whitespace-nowrap">
+                          {log.action}
+                        </td>
+                        <td className="px-4 py-2 text-slate-300 break-words">{log.summary}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
       <Modal

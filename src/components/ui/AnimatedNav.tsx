@@ -24,16 +24,28 @@ export function AnimatedNav<T extends string>({
   useLayoutEffect(() => {
     const row = rowRef.current
     if (!row) return
-    const btn = row.querySelector<HTMLElement>(`[data-nav-tab="${active}"]`)
-    if (!btn) return
-    setIndicator({ left: btn.offsetLeft, width: btn.offsetWidth })
+
+    const update = () => {
+      const btn = row.querySelector<HTMLElement>(`[data-nav-tab="${active}"]`)
+      if (!btn) return
+      setIndicator({ left: btn.offsetLeft, width: btn.offsetWidth })
+    }
+
+    update()
+    btnScrollIntoView(row, active)
+    row.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      row.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
   }, [active, tabs])
 
   return (
     <nav className={`border-b border-[#2a2a3d] bg-[#0a0a12] ${className}`}>
       <div
         ref={rowRef}
-        className="relative mx-auto flex max-w-7xl gap-6 overflow-x-auto px-4 md:gap-8"
+        className="nav-scroll relative mx-auto flex max-w-7xl gap-4 px-4 sm:gap-6 md:gap-8"
       >
         <span
           className="nav-indicator"
@@ -49,7 +61,7 @@ export function AnimatedNav<T extends string>({
             type="button"
             data-nav-tab={t.id}
             onClick={() => onChange(t.id)}
-            className={`relative z-10 shrink-0 py-3 text-xs font-bold tracking-widest transition-colors duration-200 ${
+            className={`relative z-10 shrink-0 min-h-11 py-3 text-[10px] font-bold tracking-widest transition-colors duration-200 sm:min-h-0 sm:text-xs ${
               active === t.id
                 ? 'text-white'
                 : 'text-slate-500 hover:text-slate-300'
@@ -61,4 +73,16 @@ export function AnimatedNav<T extends string>({
       </div>
     </nav>
   )
+}
+
+function btnScrollIntoView(row: HTMLDivElement, active: string) {
+  const btn = row.querySelector<HTMLElement>(`[data-nav-tab="${active}"]`)
+  if (!btn) return
+  const pad = 16
+  const left = btn.offsetLeft - pad
+  const right = btn.offsetLeft + btn.offsetWidth + pad
+  if (left < row.scrollLeft) row.scrollLeft = left
+  else if (right > row.scrollLeft + row.clientWidth) {
+    row.scrollLeft = right - row.clientWidth
+  }
 }

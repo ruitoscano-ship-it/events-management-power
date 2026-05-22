@@ -47,7 +47,7 @@ export function LogisticsNeedForm({ onDone }: Props) {
           placeholder="Quiche, garrafão de água…"
         />
       </FormField>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="form-grid-2">
         <FormField label="Quantidade em falta">
           <input
             type="number"

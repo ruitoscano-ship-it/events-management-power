@@ -8,7 +8,8 @@ import {
 } from 'react'
 import { appendAuditLog, type AuditInput } from '../lib/audit'
 import { LoadingState } from '../components/LoadingState'
-import { saveLocalData } from '../data/demoData'
+import { useAuth } from './AuthContext'
+import { saveCatalog } from '../lib/catalog'
 import { useEventData } from '../hooks/useEventData'
 import {
   patchData,
@@ -55,7 +56,9 @@ interface EventContextValue {
 const EventContext = createContext<EventContextValue | null>(null)
 
 export function EventProvider({ children }: { children: ReactNode }) {
-  const { data, source, persist, isSupabaseConfigured, state } = useEventData()
+  const { activeEventId } = useAuth()
+  const { data, source, persist, isSupabaseConfigured, state, catalog } =
+    useEventData(activeEventId)
   const [saving, setSaving] = useState(false)
   const useDb = source === 'supabase'
 
@@ -67,12 +70,17 @@ export function EventProvider({ children }: { children: ReactNode }) {
         const payload = audit ? appendAuditLog(next, audit) : next
         if (sync) await sync()
         persist(payload)
-        if (!useDb) saveLocalData(payload)
+        if (!useDb && catalog && activeEventId) {
+          saveCatalog({
+            ...catalog,
+            events: { ...catalog.events, [activeEventId]: payload },
+          })
+        }
       } finally {
         setSaving(false)
       }
     },
-    [data, persist, useDb],
+    [data, persist, useDb, catalog, activeEventId],
   )
 
   const saveEvent = useCallback(
