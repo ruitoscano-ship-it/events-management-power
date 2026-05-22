@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { newId } from '../../lib/datetime'
+import { isValidPhone, isValidPin } from '../../lib/phone'
+import { isSupabaseConfigured } from '../../lib/supabase'
+import { resetVolunteerPin } from '../../lib/volunteerAuth'
 import { useEvent } from '../../context/EventContext'
 import { FormField, inputClass, submitButtonClass } from '../ui/FormField'
 import type { Volunteer } from '../../types'
@@ -17,31 +20,74 @@ export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
   const [phone, setPhone] = useState(initial?.phone ?? '')
   const [role, setRole] = useState(initial?.role ?? '')
   const [notes, setNotes] = useState(initial?.notes ?? '')
+  const [resetPin, setResetPin] = useState(false)
+  const [newPin, setNewPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
   const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const canResetPin =
+    !isNew &&
+    initial &&
+    isSupabaseConfigured &&
+    Boolean(initial.account_id || (phone && isValidPhone(phone)))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setFormError(null)
+
+    if (resetPin) {
+      if (!isValidPin(newPin)) {
+        setFormError('O novo código deve ter 4 dígitos.')
+        return
+      }
+      if (newPin !== confirmPin) {
+        setFormError('Os dois códigos não coincidem.')
+        return
+      }
+    }
+
     setSaving(true)
-    await saveVolunteer(
-      {
-        id: initial?.id ?? newId(),
-        event_id: data.event.id,
-        account_id: initial?.account_id ?? null,
-        name,
-        email: email || null,
-        phone: phone || null,
-        role: role || null,
-        notes: notes || null,
-        active: initial?.active ?? true,
-      },
-      isNew || !initial,
-    )
+
+    const volunteer: Volunteer = {
+      id: initial?.id ?? newId(),
+      event_id: data.event.id,
+      account_id: initial?.account_id ?? null,
+      name,
+      email: email || null,
+      phone: phone || null,
+      role: role || null,
+      notes: notes || null,
+      active: initial?.active ?? true,
+    }
+
+    await saveVolunteer(volunteer, isNew || !initial)
+
+    if (resetPin && canResetPin) {
+      const pinResult = await resetVolunteerPin({
+        pin: newPin,
+        accountId: initial?.account_id,
+        phone: phone || initial?.phone,
+      })
+      if (!pinResult.ok) {
+        setFormError(pinResult.error)
+        setSaving(false)
+        return
+      }
+    }
+
     setSaving(false)
     onDone()
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {formError && (
+        <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {formError}
+        </p>
+      )}
+
       <FormField label="Nome">
         <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} required />
       </FormField>
@@ -57,8 +103,76 @@ export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
       <FormField label="Notas">
         <textarea className={inputClass} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </FormField>
+
+      {canResetPin && (
+        <fieldset className="rounded-lg border border-[#2a2a3d] bg-[#0a0a12] p-4 space-y-3">
+          <legend className="text-xs font-bold uppercase tracking-wide text-slate-400 px-1">
+            Acesso à app (voluntário)
+          </legend>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={resetPin}
+              onChange={(e) => {
+                setResetPin(e.target.checked)
+                if (!e.target.checked) {
+                  setNewPin('')
+                  setConfirmPin('')
+                  setFormError(null)
+                }
+              }}
+              className="mt-1"
+            />
+            <span className="text-sm text-slate-300">
+              Redefinir código de 4 dígitos
+              <span className="block text-xs text-slate-500 mt-0.5">
+                O voluntário usa este código com o telefone para entrar na app.
+              </span>
+            </span>
+          </label>
+          {resetPin && (
+            <>
+              <FormField label="Novo código (4 dígitos)">
+                <input
+                  className={inputClass}
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  pattern="\d{4}"
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="••••"
+                  autoComplete="new-password"
+                  required={resetPin}
+                />
+              </FormField>
+              <FormField label="Confirmar código">
+                <input
+                  className={inputClass}
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  pattern="\d{4}"
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="••••"
+                  autoComplete="new-password"
+                  required={resetPin}
+                />
+              </FormField>
+            </>
+          )}
+        </fieldset>
+      )}
+
+      {!isNew && initial && isSupabaseConfigured && !canResetPin && (
+        <p className="text-xs text-slate-500 rounded-lg border border-[#2a2a3d] px-3 py-2">
+          Sem conta de acesso ligada. Adiciona um telefone válido ou o voluntário regista-se na app com o mesmo número.
+        </p>
+      )}
+
       <button type="submit" disabled={saving} className={submitButtonClass}>
-        {saving ? 'A guardar…' : 'Guardar'}
+        {saving ? 'A guardar…' : resetPin ? 'Guardar e atualizar código' : 'Guardar'}
       </button>
     </form>
   )

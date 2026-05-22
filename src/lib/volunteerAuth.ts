@@ -111,3 +111,41 @@ export async function loginVolunteerAccount(
 
   return loginSupabase(phone, pin)
 }
+
+export type ResetVolunteerPinResult =
+  | { ok: true; accountId: string }
+  | { ok: false; error: string }
+
+export async function resetVolunteerPin(options: {
+  pin: string
+  accountId?: string | null
+  phone?: string | null
+}): Promise<ResetVolunteerPinResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    return { ok: false, error: 'Supabase não configurado.' }
+  }
+  if (!isValidPin(options.pin)) {
+    return { ok: false, error: 'O código deve ter 4 dígitos.' }
+  }
+  if (!options.accountId && !options.phone?.trim()) {
+    return {
+      ok: false,
+      error: 'Sem conta de acesso ligada. Indica telefone ou o voluntário deve registar-se na app.',
+    }
+  }
+
+  const { data, error } = await supabase.rpc('reset_volunteer_pin', {
+    p_pin: options.pin,
+    p_account_id: options.accountId ?? null,
+    p_phone: options.phone?.trim() ? options.phone : null,
+  })
+
+  if (error) return { ok: false, error: error.message }
+
+  const payload = data as RpcPayload & { account_id?: string }
+  if (!payload?.ok || !payload.account_id) {
+    return { ok: false, error: payload?.error ?? 'Não foi possível redefinir o código.' }
+  }
+
+  return { ok: true, accountId: payload.account_id }
+}
