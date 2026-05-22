@@ -10,7 +10,9 @@ import {
 } from '../../lib/scheduleInline'
 import { activeVolunteers } from '../../lib/volunteers'
 import type { ScheduleBlock, ScheduleCategory } from '../../types'
+import { ScheduleTable } from '../shared/ScheduleTable'
 import { darkInput } from '../ui/darkForm'
+import { VolunteerAssignField } from './VolunteerAssignField'
 
 const categories: ScheduleCategory[] = [
   'setup',
@@ -31,64 +33,6 @@ interface RowProps {
   eventDate: string
   volunteers: { id: string; name: string }[]
   onDelete: (block: ScheduleBlock) => void
-}
-
-function VolunteerAssignField({
-  volunteers,
-  selectedIds,
-  onChange,
-}: {
-  volunteers: { id: string; name: string }[]
-  selectedIds: string[]
-  onChange: (ids: string[]) => void
-}) {
-  function toggle(id: string) {
-    onChange(
-      selectedIds.includes(id)
-        ? selectedIds.filter((x) => x !== id)
-        : [...selectedIds, id],
-    )
-  }
-
-  const summary =
-    selectedIds.length === 0
-      ? 'Nenhum'
-      : volunteers
-          .filter((v) => selectedIds.includes(v.id))
-          .map((v) => v.name.split(' ')[0])
-          .join(', ')
-
-  return (
-    <details className="group relative" onClick={(e) => e.stopPropagation()}>
-      <summary className="min-h-11 cursor-pointer list-none rounded-lg border border-[#2a2a3d] bg-[#0a0a12] px-3 py-2 text-left text-sm text-white hover:border-[#ff2d6a]/40 [&::-webkit-details-marker]:hidden">
-        <span className="font-medium text-[#ff2d6a]">{selectedIds.length}</span>
-        <span className="text-slate-400"> · </span>
-        <span className="text-slate-300">{summary}</span>
-        <span className="float-right text-slate-500 group-open:rotate-180">▾</span>
-      </summary>
-      <div className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-y-auto rounded-lg border border-[#2a2a3d] bg-[#12121c] p-2 shadow-xl sm:left-0 sm:right-auto sm:w-64">
-        {volunteers.length === 0 ? (
-          <p className="px-2 py-2 text-xs text-slate-500">Sem voluntários ativos.</p>
-        ) : (
-          <ul className="space-y-0.5">
-            {volunteers.map((v) => (
-              <li key={v.id}>
-                <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 hover:bg-white/5">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(v.id)}
-                    onChange={() => toggle(v.id)}
-                    className="h-5 w-5 shrink-0 rounded border-[#2a2a3d] accent-[#ff2d6a]"
-                  />
-                  <span className="text-sm text-white">{v.name}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </details>
-  )
 }
 
 function ScheduleInlineRow({ block, eventDate, volunteers, onDelete }: RowProps) {
@@ -355,6 +299,7 @@ function ScheduleInlineCard({ block, eventDate, volunteers, onDelete }: RowProps
 
 export function ScheduleInlineTable() {
   const { data, deleteSchedule } = useEvent()
+  const [editing, setEditing] = useState(false)
   const sorted = useMemo(
     () =>
       [...data.schedule].sort(
@@ -376,16 +321,53 @@ export function ScheduleInlineTable() {
 
   return (
     <div>
-      <div className="mb-4 sm:mb-6">
-        <h2 className="text-2xl font-black tracking-tight uppercase sm:text-2xl md:text-3xl">
-          <span className="text-white">Horário </span>
-          <span className="text-[#ff2d6a]">oficial</span>
-        </h2>
-        <p className="mt-1.5 text-base text-slate-300 capitalize sm:text-sm sm:text-slate-400">
-          {formatEventDateLong(data.event.event_date)} — visível para toda a equipa
-        </p>
+      <div className="mb-4 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight uppercase sm:text-2xl md:text-3xl">
+            <span className="text-white">Horário </span>
+            <span className="text-[#ff2d6a]">oficial</span>
+          </h2>
+          <p className="mt-1.5 text-base text-slate-300 capitalize sm:text-sm sm:text-slate-400">
+            {formatEventDateLong(data.event.event_date)} — visível para toda a equipa
+          </p>
+        </div>
+
+        <div
+          className="flex shrink-0 rounded-lg border border-[#2a2a3d] bg-[#0a0a12] p-1"
+          role="group"
+          aria-label="Modo do horário"
+        >
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className={`min-h-11 rounded-md px-5 text-sm font-semibold transition-colors ${
+              !editing
+                ? 'bg-[#ff2d6a] text-white'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            aria-pressed={!editing}
+          >
+            Ver
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className={`min-h-11 rounded-md px-5 text-sm font-semibold transition-colors ${
+              editing
+                ? 'bg-[#ff2d6a] text-white'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            aria-pressed={editing}
+          >
+            Editar
+          </button>
+        </div>
       </div>
 
+      {!editing ? (
+        <ScheduleTable showTitle={false} breakpoint="md" />
+      ) : (
+        <>
       <p className="mb-3 text-sm text-slate-400">
         Edita cada bloco e atribui voluntários. Usa <strong className="font-medium text-slate-300">Guardar</strong> em cada linha para sincronizar com o servidor.
       </p>
@@ -421,6 +403,8 @@ export function ScheduleInlineTable() {
           <p className="text-center text-sm text-slate-500 py-8">Ainda não há blocos no horário.</p>
         )}
       </div>
+        </>
+      )}
     </div>
   )
 }

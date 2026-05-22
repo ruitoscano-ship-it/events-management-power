@@ -10,13 +10,18 @@ interface Props {
   showTitle?: boolean
   selectedId?: string | null
   onSelectBlock?: (id: string) => void
+  /** When `md`, table shows from tablet up (organizer). Default `lg` (volunteer). */
+  breakpoint?: 'md' | 'lg'
 }
 
 export function ScheduleTable({
   showTitle = true,
   selectedId,
   onSelectBlock,
+  breakpoint = 'lg',
 }: Props) {
+  const tableClass = breakpoint === 'md' ? 'hidden md:block' : 'hidden lg:block'
+  const cardsClass = breakpoint === 'md' ? 'md:hidden' : 'lg:hidden'
   const { data } = useEvent()
   const sorted = useMemo(
     () =>
@@ -49,7 +54,7 @@ export function ScheduleTable({
         </div>
       )}
 
-      <div className="hidden lg:block overflow-x-auto rounded-xl border border-[#2a2a3d] bg-[#12121c]">
+      <div className={`${tableClass} overflow-x-auto rounded-xl border border-[#2a2a3d] bg-[#12121c]`}>
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
             <tr className="border-b border-[#2a2a3d] text-[10px] font-semibold tracking-widest text-slate-500 uppercase">
@@ -94,7 +99,7 @@ export function ScheduleTable({
         </table>
       </div>
 
-      <div className="lg:hidden space-y-3 motion-stagger">
+      <div className={`${cardsClass} space-y-3 motion-stagger`}>
         {sorted.map((block) => (
           <article
             key={block.id}
