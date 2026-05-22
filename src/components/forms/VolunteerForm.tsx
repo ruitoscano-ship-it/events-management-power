@@ -94,9 +94,9 @@ export function VolunteerForm({ initial, isNew = false, onDone, onCancel }: Prop
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex min-h-0 flex-1 flex-col"
+      className="flex h-full min-h-0 w-full flex-col"
     >
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5 space-y-4">
+      <div className="modal-dialog-scroll min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-5">
         {formError && (
           <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {formError}

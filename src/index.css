@@ -144,6 +144,12 @@
   background-color: #ffffff;
 }
 
+/* Scroll dentro de modais (iOS: permitir arrastar o conteúdo do formulário) */
+.modal-dialog-scroll {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
 /* ——— Motion / page transitions ——— */
 @layer utilities {
   .motion-page {

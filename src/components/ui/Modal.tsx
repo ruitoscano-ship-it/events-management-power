@@ -35,50 +35,50 @@ export function Modal({
   if (!mounted) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center sm:p-6">
+    <div className="fixed inset-0 z-50 overflow-hidden">
       <button
         type="button"
-        className={`fixed inset-0 bg-slate-900/60 ${
+        className={`absolute inset-0 bg-slate-900/60 ${
           open ? 'motion-modal-backdrop-open' : 'motion-modal-backdrop-close'
         }`}
         aria-label="Fechar"
         onClick={onClose}
       />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-        className={`relative z-10 flex w-full max-w-lg max-h-[min(90dvh,calc(100dvh-2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl sm:max-w-xl ${
-          open ? 'motion-modal-panel-open' : 'motion-modal-panel-close'
-        }`}
-        onAnimationEnd={(e) => {
-          if (e.currentTarget !== e.target) return
-          if (!open && e.animationName === 'motion-modal-down') setMounted(false)
-        }}
-      >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
-          <h2 id="modal-title" className="text-lg font-semibold text-slate-900">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 transition-colors"
-            aria-label="Fechar"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+      <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-6 pointer-events-none">
         <div
-          className={`modal-form flex min-h-0 flex-1 flex-col overflow-hidden text-slate-900 ${
-            open ? 'motion-fade' : ''
-          } ${
-            contentPadding
-              ? 'min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5'
-              : ''
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+          className={`pointer-events-auto flex w-full max-w-lg min-h-0 max-h-[calc(100svh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl sm:max-w-xl ${
+            open ? 'motion-modal-panel-open' : 'motion-modal-panel-close'
           }`}
+          onAnimationEnd={(e) => {
+            if (e.currentTarget !== e.target) return
+            if (!open && e.animationName === 'motion-modal-down') setMounted(false)
+          }}
         >
-          {children}
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4">
+            <h2 id="modal-title" className="text-lg font-semibold text-slate-900">
+              {title}
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 transition-colors"
+              aria-label="Fechar"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div
+            className={`modal-form flex min-h-0 flex-1 flex-col overflow-hidden text-slate-900 ${
+              contentPadding
+                ? 'modal-dialog-scroll overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-5'
+                : ''
+            }`}
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>
