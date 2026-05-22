@@ -48,6 +48,7 @@ if (!databaseUrl) {
 const files = [
   'supabase/schema.sql',
   'supabase/volunteer_accounts.sql',
+  'supabase/organizer_accounts.sql',
   'supabase/migrations/001_app_columns.sql',
   'supabase/seed.sql',
 ]
@@ -89,7 +90,8 @@ try {
   const { rows } = await client.query(`
     select
       (select count(*)::int from events) as events,
-      (select count(*)::int from volunteer_accounts) as accounts,
+      (select count(*)::int from volunteer_accounts) as volunteer_accounts,
+      (select count(*)::int from organizer_accounts) as organizer_accounts,
       (select count(*)::int from volunteers) as volunteers
   `)
   console.log('\n📊 Contagens:', rows[0])

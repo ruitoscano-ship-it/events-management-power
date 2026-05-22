@@ -20,3 +20,7 @@ export const inputClass =
   'w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base sm:text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100'
 
 export const selectClass = inputClass
+
+/** Botão de submissão visível em modais (brand-* não está no tema Tailwind) */
+export const submitButtonClass =
+  'w-full min-h-11 rounded-lg bg-[#ff2d6a] py-2.5 text-sm font-semibold text-white hover:bg-[#e0265d] disabled:opacity-60 transition-colors'

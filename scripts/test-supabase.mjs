@@ -91,3 +91,19 @@ if (regErr) {
 } else {
   console.log('ℹ️ register_volunteer:', regData?.error ?? regData)
 }
+
+const { data: orgData, error: orgErr } = await supabase.rpc('login_organizer', {
+  p_username: 'admin',
+  p_password: 'admin',
+})
+if (orgErr?.message?.includes('schema cache') || orgErr?.code === 'PGRST202') {
+  console.error('\n❌ Funções de organizador em falta → executa supabase/organizer_accounts.sql')
+  process.exit(1)
+}
+if (orgErr) {
+  console.error('\n❌ login_organizer:', orgErr.message)
+} else if (orgData?.ok) {
+  console.log('✅ login_organizer (admin):', orgData.username)
+} else {
+  console.error('❌ login_organizer:', orgData?.error)
+}

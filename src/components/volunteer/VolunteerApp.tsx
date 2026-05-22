@@ -5,12 +5,12 @@ import { EventHeader } from '../layout/EventHeader'
 import { ScheduleTable } from '../shared/ScheduleTable'
 import { PageTransition } from '../ui/PageTransition'
 import { VolunteerAvailabilityPage } from './VolunteerAvailabilityPage'
-import { VolunteerEuTragoPage } from './VolunteerEuTragoPage'
+import { VolunteerEuLevoPage } from './VolunteerEuLevoPage'
 import { VolunteerNav, VOLUNTEER_TAB_ORDER, type VolunteerTab } from './VolunteerNav'
 
 export function VolunteerApp() {
   const { volunteerIdInEvent } = useAuth()
-  const [tab, setTab] = useState<VolunteerTab>('eu-trago')
+  const [tab, setTab] = useState<VolunteerTab>('eu-levo')
   const direction = useTabDirection(tab, VOLUNTEER_TAB_ORDER)
 
   if (!volunteerIdInEvent) {
@@ -31,7 +31,7 @@ export function VolunteerApp() {
             <ScheduleTable />
           </div>
         )}
-        {tab === 'eu-trago' && <VolunteerEuTragoPage />}
+        {tab === 'eu-levo' && <VolunteerEuLevoPage />}
         {tab === 'disponibilidade' && <VolunteerAvailabilityPage />}
       </PageTransition>
     </div>

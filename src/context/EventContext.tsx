@@ -9,7 +9,6 @@ import {
 import { appendAuditLog, type AuditInput } from '../lib/audit'
 import { LoadingState } from '../components/LoadingState'
 import { useAuth } from './AuthContext'
-import { saveCatalog } from '../lib/catalog'
 import { useEventData } from '../hooks/useEventData'
 import {
   patchData,
@@ -57,10 +56,9 @@ const EventContext = createContext<EventContextValue | null>(null)
 
 export function EventProvider({ children }: { children: ReactNode }) {
   const { activeEventId } = useAuth()
-  const { data, source, persist, isSupabaseConfigured, state, catalog } =
+  const { data, source, persist, isSupabaseConfigured, state, error, reload, useDb } =
     useEventData(activeEventId)
   const [saving, setSaving] = useState(false)
-  const useDb = source === 'supabase'
 
   const apply = useCallback(
     async (next: EventData, sync?: () => Promise<void>, audit?: AuditInput) => {
@@ -70,17 +68,11 @@ export function EventProvider({ children }: { children: ReactNode }) {
         const payload = audit ? appendAuditLog(next, audit) : next
         if (sync) await sync()
         persist(payload)
-        if (!useDb && catalog && activeEventId) {
-          saveCatalog({
-            ...catalog,
-            events: { ...catalog.events, [activeEventId]: payload },
-          })
-        }
       } finally {
         setSaving(false)
       }
     },
-    [data, persist, useDb, catalog, activeEventId],
+    [data, persist],
   )
 
   const saveEvent = useCallback(
@@ -345,7 +337,24 @@ export function EventProvider({ children }: { children: ReactNode }) {
     ],
   )
 
-  if (state === 'loading' || !value) return <LoadingState />
+  if (state === 'loading' || !value) {
+    return <LoadingState message={state === 'loading' ? 'A carregar evento…' : undefined} />
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-4">
+        <p className="text-center text-sm text-red-400">{error}</p>
+        <button
+          type="button"
+          onClick={() => reload()}
+          className="rounded-lg bg-[#ff2d6a] px-4 py-2 text-sm font-medium text-white"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    )
+  }
 
   return (
     <EventContext.Provider value={value}>{children}</EventContext.Provider>

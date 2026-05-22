@@ -28,7 +28,7 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
         onClick={onClose}
       />
       <div
-        className={`relative z-10 max-h-[min(90dvh,100%)] w-full overflow-y-auto rounded-t-2xl border border-slate-200 bg-white p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-xl sm:max-w-lg sm:rounded-2xl sm:p-5 ${
+        className={`relative z-10 flex max-h-[min(90dvh,100%)] w-full flex-col rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:max-w-lg sm:rounded-2xl ${
           open ? 'motion-modal-panel-open' : 'motion-modal-panel-close'
         }`}
         onAnimationEnd={(e) => {
@@ -36,7 +36,7 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
           if (!open && e.animationName === 'motion-modal-down') setMounted(false)
         }}
       >
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
           <button
             type="button"
@@ -46,7 +46,13 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className={open ? 'motion-fade' : ''}>{children}</div>
+        <div
+          className={`min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5 ${
+            open ? 'motion-fade' : ''
+          }`}
+        >
+          {children}
+        </div>
       </div>
     </div>
   )

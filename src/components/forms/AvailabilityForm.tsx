@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { newId, fromDatetimeLocal, toDatetimeLocal } from '../../lib/datetime'
 import { useEvent } from '../../context/EventContext'
-import { FormField, inputClass, selectClass } from '../ui/FormField'
+import { FormField, inputClass, selectClass, submitButtonClass } from '../ui/FormField'
 import type { VolunteerAvailability } from '../../types'
 
 interface Props {
@@ -32,6 +32,8 @@ export function AvailabilityForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!volunteerId) return
+    if (new Date(until) <= new Date(from)) return
     setSaving(true)
     await saveAvailability({
       id: initial?.id ?? newId(),
@@ -60,14 +62,24 @@ export function AvailabilityForm({
           <input type="datetime-local" className={inputClass} value={from} onChange={(e) => setFrom(e.target.value)} required />
         </FormField>
         <FormField label="Até">
-          <input type="datetime-local" className={inputClass} value={until} onChange={(e) => setUntil(e.target.value)} required />
+          <input
+            type="datetime-local"
+            className={inputClass}
+            value={until}
+            onChange={(e) => setUntil(e.target.value)}
+            min={from}
+            required
+          />
         </FormField>
       </div>
+      {until && from && new Date(until) <= new Date(from) && (
+        <p className="text-sm text-red-600">A hora de fim deve ser depois do início.</p>
+      )}
       <FormField label="Notas">
         <input className={inputClass} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </FormField>
-      <button type="submit" disabled={saving} className="w-full rounded-lg bg-brand-600 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">
-        {saving ? 'A guardar…' : 'Guardar'}
+      <button type="submit" disabled={saving} className={submitButtonClass}>
+        {saving ? 'A guardar…' : 'Guardar disponibilidade'}
       </button>
     </form>
   )

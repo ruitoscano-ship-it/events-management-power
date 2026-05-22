@@ -1,12 +1,13 @@
 import { ArrowLeftRight, LogOut, Users } from 'lucide-react'
 import { useEvent } from '../../context/EventContext'
+import { isSupabaseConfigured } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { avatarColor, volunteerById, volunteerInitials } from '../../lib/volunteers'
 
 const MARIA_AVATAR = '#f97316'
 
 export function EventHeader() {
-  const { data } = useEvent()
+  const { data, source } = useEvent()
   const {
     mode,
     volunteerIdInEvent,
@@ -105,6 +106,12 @@ export function EventHeader() {
             </button>
           </div>
         </div>
+
+        {isSupabaseConfigured && source === 'supabase' && (
+          <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-emerald-400/90">
+            Dados em Supabase
+          </p>
+        )}
 
         <div className="mt-3 hidden gap-6 text-xs text-slate-400 md:flex">
           <span>

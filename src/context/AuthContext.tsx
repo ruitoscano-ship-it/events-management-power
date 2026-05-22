@@ -2,11 +2,15 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react'
 import { ensureVolunteerInEvent, loadCatalog, saveCatalog } from '../lib/catalog'
+import { hydrateCatalogFromSupabase } from '../lib/supabaseData'
+import { isSupabaseConfigured } from '../lib/supabase'
+import { loginOrganizerAccount } from '../lib/organizerAuth'
 import {
   loginVolunteerAccount,
   registerVolunteerAccount,
@@ -14,12 +18,12 @@ import {
 import type { EventCatalog, PortalMode, VolunteerAccount } from '../types'
 
 const AUTH_KEY = 'eventflow-auth-v1'
-const ORGANIZER_USER = 'admin'
-const ORGANIZER_PASS = 'admin'
 
 interface AuthPersist {
   mode: PortalMode | null
   organizerLoggedIn: boolean
+  organizerId: string | null
+  organizerUsername: string | null
   volunteerAccountId: string | null
   volunteerAccountName: string | null
   volunteerAccountPhone: string | null
@@ -41,6 +45,8 @@ function defaultAuth(): AuthPersist {
   return {
     mode: null,
     organizerLoggedIn: false,
+    organizerId: null,
+    organizerUsername: null,
     volunteerAccountId: null,
     volunteerAccountName: null,
     volunteerAccountPhone: null,
@@ -67,7 +73,9 @@ function accountFromAuth(auth: AuthPersist): VolunteerAccount | null {
 
 interface AuthContextValue {
   catalog: EventCatalog
-  refreshCatalog: () => void
+  dataSource: 'local' | 'supabase'
+  catalogLoading: boolean
+  refreshCatalog: () => Promise<void>
   volunteerAccount: VolunteerAccount | null
   mode: PortalMode | null
   organizerLoggedIn: boolean
@@ -76,7 +84,7 @@ interface AuthContextValue {
   volunteerIdInEvent: string | null
   startOrganizer: () => void
   startVolunteer: () => void
-  loginOrganizer: (username: string, password: string) => string | null
+  loginOrganizer: (username: string, password: string) => Promise<string | null>
   logoutOrganizer: () => void
   registerVolunteer: (
     name: string,
@@ -94,6 +102,10 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [catalog, setCatalog] = useState<EventCatalog>(() => loadCatalog())
+  const [dataSource, setDataSource] = useState<'local' | 'supabase'>(
+    isSupabaseConfigured ? 'supabase' : 'local',
+  )
+  const [catalogLoading, setCatalogLoading] = useState(isSupabaseConfigured)
   const [auth, setAuth] = useState<AuthPersist>(readAuth)
 
   const volunteerAccount = useMemo(() => accountFromAuth(auth), [auth])
@@ -103,9 +115,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     writeAuth(next)
   }, [])
 
-  const refreshCatalog = useCallback(() => {
+  const refreshCatalog = useCallback(async () => {
+    if (isSupabaseConfigured) {
+      setCatalogLoading(true)
+      const ok = await hydrateCatalogFromSupabase()
+      setDataSource(ok ? 'supabase' : 'local')
+      setCatalog(loadCatalog())
+      setCatalogLoading(false)
+      return
+    }
     setCatalog(loadCatalog())
+    setDataSource('local')
   }, [])
+
+  useEffect(() => {
+    void refreshCatalog()
+  }, [refreshCatalog])
 
   const setVolunteerSession = useCallback(
     (account: VolunteerAccount) => {
@@ -138,14 +163,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [persist])
 
   const loginOrganizer = useCallback(
-    (username: string, password: string) => {
-      if (username.trim() !== ORGANIZER_USER || password !== ORGANIZER_PASS) {
-        return 'Utilizador ou palavra-passe incorretos.'
-      }
+    async (username: string, password: string) => {
+      const result = await loginOrganizerAccount(username, password)
+      if (!result.ok) return result.error
       persist({
         ...auth,
         mode: 'organizer',
         organizerLoggedIn: true,
+        organizerId: result.organizerId,
+        organizerUsername: result.username,
         volunteerAccountId: null,
         volunteerAccountName: null,
         volunteerAccountPhone: null,
@@ -173,12 +199,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         pin,
       )
       if (result.ok) {
-        const merged = {
-          ...nextCat,
-          accounts: upsertAccount(nextCat.accounts, result.account),
+        if (!isSupabaseConfigured) {
+          const merged = {
+            ...nextCat,
+            accounts: upsertAccount(nextCat.accounts, result.account),
+          }
+          setCatalog(merged)
+          saveCatalog(merged)
         }
-        setCatalog(merged)
-        saveCatalog(merged)
         setVolunteerSession(result.account)
         return null
       }
@@ -246,6 +274,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       catalog,
+      dataSource,
+      catalogLoading,
       refreshCatalog,
       volunteerAccount,
       mode: auth.mode,
@@ -266,6 +296,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }),
     [
       catalog,
+      dataSource,
+      catalogLoading,
       refreshCatalog,
       volunteerAccount,
       auth,

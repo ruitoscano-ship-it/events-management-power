@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ArrowLeft, Shield } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { isSupabaseConfigured } from '../lib/supabase'
 import { darkBtnPrimary, darkBtnSecondary, darkInput, darkLabel } from '../components/ui/darkForm'
 
 export function OrganizerLoginPage() {
@@ -8,11 +9,18 @@ export function OrganizerLoginPage() {
   const [username, setUsername] = useState('admin')
   const [password, setPassword] = useState('admin')
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const err = loginOrganizer(username, password)
-    setError(err)
+    setError(null)
+    setLoading(true)
+    try {
+      const err = await loginOrganizer(username, password)
+      setError(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -66,14 +74,25 @@ export function OrganizerLoginPage() {
               required
             />
           </label>
-          <button type="submit" className={darkBtnPrimary}>
-            Entrar
+          <button type="submit" className={darkBtnPrimary} disabled={loading}>
+            {loading ? 'A entrar…' : 'Entrar'}
           </button>
         </form>
 
         <p className="mt-4 rounded-lg border border-[#2a2a3d] bg-[#12121c] px-3 py-2 text-xs text-slate-500">
-          Acesso predefinido: <span className="font-mono text-slate-400">admin</span> /{' '}
-          <span className="font-mono text-slate-400">admin</span>
+          {isSupabaseConfigured ? (
+            <>
+              Conta validada no <span className="text-emerald-400/90">Supabase</span>. Acesso
+              inicial: <span className="font-mono text-slate-400">admin</span> /{' '}
+              <span className="font-mono text-slate-400">admin</span> (altera no painel SQL em
+              produção).
+            </>
+          ) : (
+            <>
+              Modo local: <span className="font-mono text-slate-400">admin</span> /{' '}
+              <span className="font-mono text-slate-400">admin</span>
+            </>
+          )}
         </p>
 
         <button type="button" onClick={exitToEntry} className={`mt-4 ${darkBtnSecondary}`}>

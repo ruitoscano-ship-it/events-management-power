@@ -36,7 +36,7 @@ export function OrganizerLogisticsPage() {
           <div>
             <h2 className="text-xl font-bold text-white uppercase">Em aberto</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Necessidades à espera de voluntário («eu trago»).
+              Necessidades à espera de voluntário («eu levo»).
             </p>
           </div>
           <button

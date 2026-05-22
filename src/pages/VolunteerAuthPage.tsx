@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { isSupabaseConfigured } from '../lib/supabase'
 import { darkBtnPrimary, darkInput, darkLabel } from '../components/ui/darkForm'
 
 type Tab = 'login' | 'register'
@@ -49,6 +50,11 @@ export function VolunteerAuthPage() {
         </h1>
         <p className="mt-2 text-sm text-slate-400">
           Regista-te ou entra com o teu telefone e código de 4 dígitos.
+          {isSupabaseConfigured && (
+            <span className="mt-1 block text-emerald-400/90">
+              Conta partilhada entre dispositivos (Supabase).
+            </span>
+          )}
         </p>
 
         <div className="mt-6 flex rounded-lg border border-[#2a2a3d] p-0.5">

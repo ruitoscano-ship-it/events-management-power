@@ -11,6 +11,8 @@ interface Props {
 export function EventPickerPage({ variant }: Props) {
   const {
     catalog,
+    catalogLoading,
+    dataSource,
     volunteerAccount,
     selectEvent,
     clearActiveEvent,
@@ -65,7 +67,15 @@ export function EventPickerPage({ variant }: Props) {
               : 'Seleciona o evento.'}
         </p>
 
-        {ongoing.length > 0 && (
+        {dataSource === 'supabase' && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+            Ligado ao Supabase
+          </p>
+        )}
+
+        {catalogLoading ? (
+          <p className="mt-8 text-sm text-slate-500">A carregar eventos…</p>
+        ) : ongoing.length > 0 && (
           <section className="mt-8">
             <h2 className="text-xs font-bold tracking-widest text-emerald-400 uppercase mb-3">
               Em curso ({ongoing.length})
@@ -83,7 +93,7 @@ export function EventPickerPage({ variant }: Props) {
           </section>
         )}
 
-        {past.length > 0 && (
+        {!catalogLoading && past.length > 0 && (
           <section className="mt-8">
             <h2 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">
               Passados ({past.length})
@@ -101,7 +111,7 @@ export function EventPickerPage({ variant }: Props) {
           </section>
         )}
 
-        {ongoing.length === 0 && past.length === 0 && (
+        {!catalogLoading && ongoing.length === 0 && past.length === 0 && (
           <p className="mt-8 rounded-xl border border-[#2a2a3d] bg-[#12121c] p-6 text-sm text-slate-500">
             Nenhum evento disponível.
           </p>

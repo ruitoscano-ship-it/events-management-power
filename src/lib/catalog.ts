@@ -58,8 +58,9 @@ export function loadCatalog(): EventCatalog {
     for (const [id, data] of Object.entries(parsed.events ?? {})) {
       events[id] = normalizeEventData(data)
     }
+    const accounts = isSupabaseConfigured ? [] : (parsed.accounts ?? [])
     return {
-      accounts: parsed.accounts ?? [],
+      accounts,
       events,
     }
   }

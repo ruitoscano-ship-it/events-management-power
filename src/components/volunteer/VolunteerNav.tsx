@@ -1,10 +1,10 @@
 import { AnimatedNav, type NavTab } from '../ui/AnimatedNav'
 
-export type VolunteerTab = 'horario' | 'eu-trago' | 'disponibilidade'
+export type VolunteerTab = 'horario' | 'eu-levo' | 'disponibilidade'
 
 const tabs: readonly NavTab<VolunteerTab>[] = [
   { id: 'horario', label: 'HORÁRIO' },
-  { id: 'eu-trago', label: 'EU TRAGO' },
+  { id: 'eu-levo', label: 'EU LEVO' },
   { id: 'disponibilidade', label: 'DISPONIBILIDADE' },
 ]
 
