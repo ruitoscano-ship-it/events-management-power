@@ -22,6 +22,8 @@ import {
   reopenEventData,
   validateReopenJustification,
 } from '../lib/eventLifecycle'
+import { newId } from '../lib/datetime'
+import { dayLabelFromDate } from '../lib/normalize'
 import { syncEvent, syncEventArchivedAt } from '../lib/persistence'
 import { fetchCatalogFromSupabase } from '../lib/supabaseData'
 import { readSyncMeta } from '../lib/syncMeta'
@@ -87,6 +89,17 @@ function accountFromAuth(auth: AuthPersist): VolunteerAccount | null {
   }
 }
 
+export type CreateEventInput = {
+  name: string
+  event_date: string
+  venue: string
+  sport_type?: string
+  pairs_count?: number | null
+  edition_label?: string | null
+  description?: string | null
+  day_label?: string | null
+}
+
 interface AuthContextValue {
   catalog: EventCatalog
   dataSource: 'supabase' | 'unconfigured'
@@ -113,6 +126,9 @@ interface AuthContextValue {
   loginVolunteer: (phone: string, pin: string) => Promise<string | null>
   logoutVolunteer: () => void
   selectEvent: (eventId: string) => Promise<void>
+  createEvent: (
+    input: CreateEventInput,
+  ) => Promise<{ eventId: string } | { error: string }>
   closeEvent: (eventId: string) => Promise<string | null>
   reopenEvent: (eventId: string, justification: string) => Promise<string | null>
   /** @deprecated Use closeEvent */
@@ -334,6 +350,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [reopenEvent],
   )
 
+  const createEvent = useCallback(
+    async (
+      input: CreateEventInput,
+    ): Promise<{ eventId: string } | { error: string }> => {
+      if (!isSupabaseConfigured) {
+        return {
+          error:
+            'Supabase não configurado. Define VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.',
+        }
+      }
+      const trimmedName = input.name.trim()
+      if (!trimmedName) {
+        return { error: 'O nome do evento é obrigatório.' }
+      }
+      const event: Event = {
+        id: newId(),
+        name: trimmedName,
+        description: input.description ?? null,
+        venue: input.venue.trim() || null,
+        event_date: input.event_date,
+        sport_type: input.sport_type ?? 'danca_salao',
+        pairs_count: input.pairs_count ?? null,
+        day_label: input.day_label ?? dayLabelFromDate(input.event_date),
+        edition_label: input.edition_label ?? null,
+        archived_at: null,
+      }
+      try {
+        await syncEvent(event, true)
+        setCatalog((prev) => {
+          const next = patchCatalogEventMetadata(prev, event)
+          saveCatalog(next, 'supabase')
+          return next
+        })
+        return { eventId: event.id }
+      } catch (e) {
+        console.error('[AuthContext] createEvent:', e)
+        return {
+          error:
+            e instanceof Error
+              ? e.message
+              : 'Não foi possível criar o evento no servidor.',
+        }
+      }
+    },
+    [],
+  )
+
   const selectEvent = useCallback(
     async (eventId: string) => {
       const entry = catalog.events[eventId]
@@ -411,6 +474,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginVolunteer,
       logoutVolunteer,
       selectEvent,
+      createEvent,
       closeEvent,
       reopenEvent,
       archiveEvent,
@@ -437,6 +501,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loginVolunteer,
       logoutVolunteer,
       selectEvent,
+      createEvent,
       closeEvent,
       reopenEvent,
       archiveEvent,

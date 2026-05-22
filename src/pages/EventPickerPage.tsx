@@ -1,9 +1,11 @@
-import { ArrowLeft, Loader2, Lock, LogOut, Undo2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Lock, LogOut, Plus, Undo2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { isEventOngoing, listEventSummaries } from '../lib/catalog'
 import { isSupabaseConfigured } from '../lib/supabase'
+import { CreateEventForm } from '../components/forms/CreateEventForm'
 import { ReopenJustificationModal } from '../components/organizer/ReopenJustificationModal'
+import { Modal } from '../components/ui/Modal'
 import { EventCard } from '../components/shared/EventCard'
 import { LazyEventList } from '../components/shared/LazyEventList'
 import { SupabaseRequiredBanner } from '../components/shared/SupabaseRequiredBanner'
@@ -30,6 +32,7 @@ export function EventPickerPage({ variant }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [reopenTarget, setReopenTarget] = useState<Event | null>(null)
+  const [showCreateEvent, setShowCreateEvent] = useState(false)
 
   const retrieving = catalogLoading
 
@@ -120,16 +123,31 @@ export function EventPickerPage({ variant }: Props) {
           </button>
         </div>
 
-        <h1 className="text-2xl font-black text-white uppercase">
-          Escolher <span className="text-[#ff2d6a]">evento</span>
-        </h1>
-        <p className="mt-2 text-sm text-slate-400">
-          {variant === 'organizer'
-            ? 'Seleciona o evento que estás a organizar.'
-            : volunteerAccount
-              ? `Olá, ${volunteerAccount.name.split(' ')[0]}. Escolhe o evento em que vais apoiar.`
-              : 'Seleciona o evento.'}
-        </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-white uppercase">
+              Escolher <span className="text-[#ff2d6a]">evento</span>
+            </h1>
+            <p className="mt-2 text-sm text-slate-400">
+              {variant === 'organizer'
+                ? 'Seleciona um evento ou cria um novo.'
+                : volunteerAccount
+                  ? `Olá, ${volunteerAccount.name.split(' ')[0]}. Escolhe o evento em que vais apoiar.`
+                  : 'Seleciona o evento.'}
+            </p>
+          </div>
+          {variant === 'organizer' && (
+            <button
+              type="button"
+              onClick={() => setShowCreateEvent(true)}
+              disabled={!isSupabaseConfigured || retrieving}
+              className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-3 text-sm font-bold text-white hover:bg-[#e0265d] disabled:opacity-50 sm:w-auto sm:min-h-11"
+            >
+              <Plus className="h-4 w-4" />
+              Novo evento
+            </button>
+          )}
+        </div>
 
         <SupabaseRequiredBanner syncError={catalogSyncError} />
 
@@ -218,9 +236,19 @@ export function EventPickerPage({ variant }: Props) {
         )}
 
         {!retrieving && ongoing.length === 0 && past.length === 0 && !catalogSyncError && (
-          <p className="mt-8 rounded-xl border border-[#2a2a3d] bg-[#12121c] p-6 text-sm text-slate-500">
-            Nenhum evento disponível.
-          </p>
+          <div className="mt-8 rounded-xl border border-[#2a2a3d] bg-[#12121c] p-6 text-center">
+            <p className="text-sm text-slate-500">Nenhum evento disponível.</p>
+            {variant === 'organizer' && isSupabaseConfigured && (
+              <button
+                type="button"
+                onClick={() => setShowCreateEvent(true)}
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-2.5 text-sm font-bold text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Criar primeiro evento
+              </button>
+            )}
+          </div>
         )}
 
         {variant === 'volunteer' && (
@@ -238,13 +266,29 @@ export function EventPickerPage({ variant }: Props) {
       </div>
 
       {variant === 'organizer' && (
-        <ReopenJustificationModal
-          open={reopenTarget !== null}
-          eventName={reopenTarget?.name ?? ''}
-          busy={busyId === reopenTarget?.id}
-          onClose={() => setReopenTarget(null)}
-          onConfirm={handleReopenConfirm}
-        />
+        <>
+          <Modal
+            title="Novo evento"
+            open={showCreateEvent}
+            onClose={() => setShowCreateEvent(false)}
+            contentPadding={false}
+          >
+            <CreateEventForm
+              onCancel={() => setShowCreateEvent(false)}
+              onCreated={(eventId) => {
+                setShowCreateEvent(false)
+                void selectEvent(eventId)
+              }}
+            />
+          </Modal>
+          <ReopenJustificationModal
+            open={reopenTarget !== null}
+            eventName={reopenTarget?.name ?? ''}
+            busy={busyId === reopenTarget?.id}
+            onClose={() => setReopenTarget(null)}
+            onConfirm={handleReopenConfirm}
+          />
+        </>
       )}
     </div>
   )
