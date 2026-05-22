@@ -123,6 +123,24 @@ Secrets em **GitHub** → repo → **Settings** → **Secrets and variables** �
 | Build OK, deploy falha com `wrangler-action` | Bug/limitação da action antiga | O workflow usa `npx wrangler` do `package.json` (faz pull desta correção) |
 | Dois deploys / comportamento estranho | Cloudflare Git **e** GitHub Actions ativos | Usar só A1 **ou** só A2 |
 
+#### Cloudflare: build token de utilizador que saiu da organização
+
+| Erro | Correção |
+|------|----------|
+| `build token that belongs to a user who has left your organization` | No dashboard: [Workers & Pages](https://dash.cloudflare.com/) → projeto **events-management-power** → **Settings** → **Builds** → **API token** → criar ou selecionar um token de um membro **ativo** da conta → guardar e **Retry deployment**. |
+
+Passos:
+
+1. Entrar na Cloudflare com uma conta que ainda seja **Admin** na organização.
+2. Abrir o projeto Pages `events-management-power`.
+3. **Settings** → **Builds** (ou *Build configuration*).
+4. Em **API token**, não uses o token antigo — **Create new token** (ou escolhe um token gerido pela organização).
+5. Guardar e voltar a **Deployments** → **Retry build** no deploy que falhou.
+
+Isto é independente dos secrets `CLOUDFLARE_API_TOKEN` no GitHub (esses só contam se usares GitHub Actions). Se o deploy for só via **Connect to Git** na Cloudflare, o token em **Builds** é obrigatório.
+
+**Alternativa:** outro membro da equipa com acesso Admin recria o projeto ou reconecta o Git com a conta dele.
+
 ### Opção B: CLI (Wrangler)
 
 ```bash

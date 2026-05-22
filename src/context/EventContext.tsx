@@ -28,6 +28,7 @@ import {
   syncVenueLayout,
   syncVolunteer,
 } from '../lib/persistence'
+import { reconcileBlockTasks } from '../lib/scheduleInline'
 import type {
   Contribution,
   Event,
@@ -48,6 +49,10 @@ interface EventContextValue {
   isSupabaseConfigured: boolean
   saveEvent: (event: Event) => Promise<string | null>
   saveSchedule: (block: ScheduleBlock, isNew?: boolean) => Promise<void>
+  saveScheduleInline: (
+    block: ScheduleBlock,
+    volunteerIds: string[],
+  ) => Promise<string | null>
   deleteSchedule: (id: string) => Promise<void>
   saveVolunteer: (volunteer: Volunteer, isNew?: boolean) => Promise<void>
   setVolunteerActive: (id: string, active: boolean) => Promise<void>
@@ -152,14 +157,54 @@ export function EventProvider({ children }: { children: ReactNode }) {
     [apply, data, useDb],
   )
 
+  const saveScheduleInline = useCallback(
+    async (block: ScheduleBlock, volunteerIds: string[]): Promise<string | null> => {
+      if (!data) return 'Dados do evento não disponíveis.'
+      const { tasks, removeIds, upsertTasks } = reconcileBlockTasks(
+        data,
+        block,
+        volunteerIds,
+      )
+      const schedule = data.schedule.map((s) => (s.id === block.id ? block : s))
+      try {
+        await apply(
+          patchData(data, { schedule, tasks }),
+          async () => {
+            await syncSchedule(block, useDb)
+            for (const taskId of removeIds) await removeTask(taskId, useDb)
+            for (const task of upsertTasks) await syncTask(task, useDb)
+          },
+          {
+            action: 'schedule.updated',
+            summary: `Horário: ${block.title} (${volunteerIds.length} voluntário(s))`,
+            entity_type: 'schedule',
+            entity_id: block.id,
+          },
+        )
+        return null
+      } catch (e) {
+        console.error('[EventContext] saveScheduleInline:', e)
+        return e instanceof Error ? e.message : 'Erro ao guardar o horário.'
+      }
+    },
+    [apply, data, useDb],
+  )
+
   const deleteSchedule = useCallback(
     async (id: string) => {
       if (!data) return
       const block = data.schedule.find((s) => s.id === id)
+      const linkedTaskIds = data.tasks
+        .filter((t) => t.schedule_block_id === id)
+        .map((t) => t.id)
       const schedule = data.schedule.filter((s) => s.id !== id)
+      const tasks = data.tasks.filter((t) => t.schedule_block_id !== id)
       await apply(
-        patchData(data, { schedule }),
-        () => removeSchedule(id, useDb),
+        patchData(data, { schedule, tasks }),
+        async () => {
+          await removeSchedule(id, useDb)
+          for (const taskId of linkedTaskIds) await removeTask(taskId, useDb)
+        },
         {
           action: 'schedule.deleted',
           summary: `Bloco removido: ${block?.title ?? id}`,
@@ -440,6 +485,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
             isSupabaseConfigured,
             saveEvent,
             saveSchedule,
+            saveScheduleInline,
             deleteSchedule,
             saveVolunteer,
             setVolunteerActive,
@@ -468,6 +514,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       reload,
       saveEvent,
       saveSchedule,
+      saveScheduleInline,
       deleteSchedule,
       saveVolunteer,
       setVolunteerActive,

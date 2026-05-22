@@ -1,24 +1,16 @@
 import { useState } from 'react'
 import { useEvent } from '../../context/EventContext'
 import { scheduleStats } from '../../lib/schedule'
-import type { ScheduleBlock } from '../../types'
 import { ScheduleForm } from '../forms/ScheduleForm'
-import { ScheduleTable } from '../shared/ScheduleTable'
 import { ActionBar } from '../ui/ActionBar'
 import { Modal } from '../ui/Modal'
+import { ScheduleInlineTable } from './ScheduleInlineTable'
 import { StatCards } from './StatCards'
 
 export function OrganizerSchedulePage() {
-  const { data, deleteSchedule } = useEvent()
-  const [selected, setSelected] = useState<ScheduleBlock | null>(null)
-  const [modal, setModal] = useState<'add' | 'edit' | null>(null)
+  const { data } = useEvent()
+  const [addOpen, setAddOpen] = useState(false)
   const stats = scheduleStats(data.schedule, data.event.pairs_count)
-
-  async function handleDelete() {
-    if (!selected || !confirm('Apagar este bloco do horário?')) return
-    await deleteSchedule(selected.id)
-    setSelected(null)
-  }
 
   return (
     <div className="page-container">
@@ -28,10 +20,8 @@ export function OrganizerSchedulePage() {
         </p>
         <ActionBar
           variant="dark"
-          onAdd={() => { setSelected(null); setModal('add') }}
+          onAdd={() => setAddOpen(true)}
           addLabel="Novo bloco"
-          onEdit={selected ? () => setModal('edit') : undefined}
-          onDelete={selected ? handleDelete : undefined}
         />
       </div>
 
@@ -46,28 +36,14 @@ export function OrganizerSchedulePage() {
         />
       </div>
 
-      <p className="mb-3 text-sm text-slate-400 sm:text-xs sm:text-slate-500">
-        <span className="hidden lg:inline">Clica numa linha para editar ou apagar.</span>
-        <span className="lg:hidden">Toca num bloco para editar ou apagar.</span>
-      </p>
-      <ScheduleTable
-        showTitle
-        selectedId={selected?.id ?? null}
-        onSelectBlock={(id) => {
-          const block = data.schedule.find((s) => s.id === id)
-          setSelected(block ?? null)
-        }}
-      />
+      <ScheduleInlineTable />
 
       <Modal
-        title={modal === 'add' ? 'Novo bloco no horário' : 'Editar bloco'}
-        open={modal !== null}
-        onClose={() => setModal(null)}
+        title="Novo bloco no horário"
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
       >
-        <ScheduleForm
-          initial={modal === 'edit' ? selected ?? undefined : undefined}
-          onDone={() => { setModal(null); setSelected(null) }}
-        />
+        <ScheduleForm onDone={() => setAddOpen(false)} />
       </Modal>
     </div>
   )
