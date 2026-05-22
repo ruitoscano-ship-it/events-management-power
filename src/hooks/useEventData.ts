@@ -22,31 +22,39 @@ export function useEventData(eventId: string | null) {
     setState('loading')
     setError(null)
 
-    let cat = loadCatalog()
-
     if (useDb) {
       try {
         const eventData = await fetchEventDataFromSupabase(eventId)
-        if (eventData) {
-          cat = {
-            ...cat,
-            events: { ...cat.events, [eventId]: eventData },
-          }
-          saveCatalog(cat)
-        } else {
+        if (!eventData) {
           setError('Evento não encontrado no Supabase.')
+          setCatalog(loadCatalog())
+          setState('ready')
+          return
         }
+
+        const base = loadCatalog()
+        const cat: EventCatalog = {
+          accounts: [],
+          events: { ...base.events, [eventId]: eventData },
+        }
+        saveCatalog(cat)
+        setCatalog(cat)
+        setState('ready')
+        return
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Erro ao carregar Supabase'
         setError(msg)
         console.error('[Supabase] load event:', e)
+        setCatalog(loadCatalog())
+        setState('ready')
+        return
       }
     }
 
+    const cat = loadCatalog()
     if (!cat.events[eventId]) {
-      cat = loadCatalog()
+      setError('Evento não encontrado.')
     }
-
     setCatalog(cat)
     setState('ready')
   }, [eventId, useDb])
@@ -56,7 +64,7 @@ export function useEventData(eventId: string | null) {
   }, [load])
 
   const data =
-    eventId && catalog ? (catalog.events[eventId] ?? null) : null
+    eventId && catalog && !error ? (catalog.events[eventId] ?? null) : null
 
   const persist = useCallback(
     (next: EventData) => {

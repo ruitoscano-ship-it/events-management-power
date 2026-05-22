@@ -101,7 +101,9 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [catalog, setCatalog] = useState<EventCatalog>(() => loadCatalog())
+  const [catalog, setCatalog] = useState<EventCatalog>(() =>
+    isSupabaseConfigured ? { accounts: [], events: {} } : loadCatalog(),
+  )
   const [dataSource, setDataSource] = useState<'local' | 'supabase'>(
     isSupabaseConfigured ? 'supabase' : 'local',
   )

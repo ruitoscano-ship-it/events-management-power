@@ -21,6 +21,7 @@ import {
   syncContribution,
   syncEvent,
   syncSchedule,
+  syncVenueLayout,
   syncVolunteer,
 } from '../lib/persistence'
 import type {
@@ -28,6 +29,7 @@ import type {
   Event,
   EventData,
   ScheduleBlock,
+  VenueLayout,
   Volunteer,
   VolunteerAvailability,
   VolunteerTask,
@@ -50,6 +52,7 @@ interface EventContextValue {
   markContributionComplete: (id: string) => Promise<void>
   saveTask: (task: VolunteerTask) => Promise<void>
   deleteTask: (id: string) => Promise<void>
+  saveVenueLayout: (layout: VenueLayout) => Promise<void>
 }
 
 const EventContext = createContext<EventContextValue | null>(null)
@@ -295,6 +298,23 @@ export function EventProvider({ children }: { children: ReactNode }) {
     [apply, data, useDb],
   )
 
+  const saveVenueLayout = useCallback(
+    async (layout: VenueLayout) => {
+      if (!data) return
+      await apply(
+        patchData(data, { venueLayout: layout }),
+        () => syncVenueLayout(layout, useDb),
+        {
+          action: 'event.updated',
+          summary: `Planta do salão atualizada (${layout.zones.length} zonas)`,
+          entity_type: 'event',
+          entity_id: data.event.id,
+        },
+      )
+    },
+    [apply, data, useDb],
+  )
+
   const value = useMemo(
     () =>
       data
@@ -315,6 +335,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
             markContributionComplete,
             saveTask,
             deleteTask,
+            saveVenueLayout,
           }
         : null,
     [
@@ -334,6 +355,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       markContributionComplete,
       saveTask,
       deleteTask,
+      saveVenueLayout,
     ],
   )
 

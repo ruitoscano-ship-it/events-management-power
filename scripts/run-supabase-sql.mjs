@@ -50,6 +50,8 @@ const files = [
   'supabase/volunteer_accounts.sql',
   'supabase/organizer_accounts.sql',
   'supabase/migrations/001_app_columns.sql',
+  'supabase/migrations/002_events_day_pairs.sql',
+  'supabase/migrations/003_venue_layout.sql',
   'supabase/seed.sql',
 ]
 

@@ -1,4 +1,13 @@
 import { loadCatalog, saveCatalog } from './catalog'
+import {
+  mapAvailabilityRow,
+  mapContributionRow,
+  mapEventRow,
+  mapScheduleRow,
+  mapTaskRow,
+  mapVolunteerRow,
+} from './dbMappers'
+import { mapVenueLayoutRow } from './venueLayout'
 import { normalizeEventData } from './normalize'
 import { isSupabaseConfigured, supabase } from './supabase'
 import type { Event, EventData } from '../types'
@@ -11,6 +20,7 @@ function emptyEventShell(event: Event): EventData {
     availability: [],
     contributions: [],
     tasks: [],
+    venueLayout: null,
     auditLog: [],
   })
 }
@@ -23,7 +33,7 @@ export async function fetchEventSummariesFromSupabase(): Promise<Event[]> {
     .select('*')
     .order('event_date', { ascending: false })
   if (error) throw error
-  return data ?? []
+  return (data ?? []).map((row) => mapEventRow(row as Record<string, unknown>))
 }
 
 /** Carrega um evento completo e dados relacionados. */
@@ -40,6 +50,8 @@ export async function fetchEventDataFromSupabase(
 
   if (evErr) throw evErr
   if (!event) return null
+
+  const mappedEvent = mapEventRow(event as Record<string, unknown>)
 
   const [schedule, volunteers, contributions, tasks] = await Promise.all([
     supabase
@@ -65,19 +77,41 @@ export async function fetchEventDataFromSupabase(
       .select('*')
       .in('volunteer_id', volunteerIds)
     if (avErr) throw avErr
-    availability = avail ?? []
+    availability = (avail ?? []).map((r) =>
+      mapAvailabilityRow(r as Record<string, unknown>),
+    )
   }
 
-  const local = loadCatalog()
-  const cached = local.events[eventId]
+  const { data: layoutRow, error: layoutErr } = await supabase
+    .from('venue_layouts')
+    .select('layout_data')
+    .eq('event_id', eventId)
+    .maybeSingle()
+
+  if (layoutErr) throw layoutErr
+
+  const venueLayout = layoutRow?.layout_data
+    ? mapVenueLayoutRow(eventId, layoutRow.layout_data)
+    : null
+
+  const cached = loadCatalog().events[eventId]
 
   return normalizeEventData({
-    event,
-    schedule: schedule.data ?? [],
-    volunteers: volunteers.data ?? [],
+    event: mappedEvent,
+    schedule: (schedule.data ?? []).map((r) =>
+      mapScheduleRow(r as Record<string, unknown>),
+    ),
+    volunteers: (volunteers.data ?? []).map((r) =>
+      mapVolunteerRow(r as Record<string, unknown>),
+    ),
     availability,
-    contributions: contributions.data ?? [],
-    tasks: tasks.data ?? [],
+    contributions: (contributions.data ?? []).map((r) =>
+      mapContributionRow(r as Record<string, unknown>),
+    ),
+    tasks: (tasks.data ?? []).map((r) =>
+      mapTaskRow(r as Record<string, unknown>),
+    ),
+    venueLayout,
     auditLog: cached?.auditLog ?? [],
   })
 }
@@ -87,12 +121,10 @@ export async function buildCatalogFromSupabase(): Promise<{
   events: Record<string, EventData>
 }> {
   const summaries = await fetchEventSummariesFromSupabase()
-  const local = loadCatalog()
   const events: Record<string, EventData> = {}
 
   for (const event of summaries) {
-    events[event.id] =
-      local.events[event.id] ?? emptyEventShell(event)
+    events[event.id] = emptyEventShell(event)
   }
 
   return { events }

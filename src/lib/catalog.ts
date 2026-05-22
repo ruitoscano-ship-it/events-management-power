@@ -27,6 +27,7 @@ const pastEventData: EventData = normalizeEventData({
   availability: [],
   contributions: [],
   tasks: [],
+  venueLayout: null,
   auditLog: [],
 })
 
@@ -64,6 +65,10 @@ export function loadCatalog(): EventCatalog {
       events,
     }
   }
+  if (isSupabaseConfigured) {
+    return { accounts: [], events: {} }
+  }
+
   const migrated = migrateLegacy()
   const catalog = migrated ?? seedCatalog()
   saveCatalog(catalog)

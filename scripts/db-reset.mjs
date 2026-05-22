@@ -47,6 +47,8 @@ if (!databaseUrl) {
 const steps = [
   { label: 'Reset (truncate)', file: 'supabase/reset.sql' },
   { label: 'Schema / colunas', file: 'supabase/migrations/001_app_columns.sql' },
+  { label: 'Colunas evento', file: 'supabase/migrations/002_events_day_pairs.sql' },
+  { label: 'Planta salão', file: 'supabase/migrations/003_venue_layout.sql' },
   { label: 'Contas organizador', file: 'supabase/organizer_accounts.sql' },
   { label: 'Seed evento + dados', file: 'supabase/seed.sql' },
 ]

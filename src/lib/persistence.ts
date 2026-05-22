@@ -1,9 +1,11 @@
 import { supabase } from './supabase'
+import { venueLayoutToDbPayload } from './venueLayout'
 import type {
   Contribution,
   Event,
   EventData,
   ScheduleBlock,
+  VenueLayout,
   Volunteer,
   VolunteerAvailability,
   VolunteerTask,
@@ -16,6 +18,7 @@ type Table =
   | 'volunteer_availability'
   | 'contributions'
   | 'volunteer_tasks'
+  | 'venue_layouts'
 
 async function dbUpsert(table: Table, row: object): Promise<void> {
   if (!supabase) return
@@ -57,6 +60,10 @@ export async function syncContribution(
 
 export async function syncTask(task: VolunteerTask, useDb: boolean) {
   if (useDb) await dbUpsert('volunteer_tasks', task)
+}
+
+export async function syncVenueLayout(layout: VenueLayout, useDb: boolean) {
+  if (useDb) await dbUpsert('venue_layouts', venueLayoutToDbPayload(layout))
 }
 
 export async function removeSchedule(id: string, useDb: boolean) {

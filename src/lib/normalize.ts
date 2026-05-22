@@ -32,6 +32,7 @@ export function normalizeEventData(data: EventData): EventData {
   const eventDate = data.event.event_date
   return {
     ...data,
+    venueLayout: data.venueLayout ?? null,
     auditLog: data.auditLog ?? [],
     schedule: data.schedule.map(normalizeBlock),
     volunteers: data.volunteers.map(normalizeVolunteer),

@@ -129,6 +129,39 @@ export interface VolunteerTask {
   notes: string | null
 }
 
+export type VenueZoneType =
+  | 'dance_floor'
+  | 'jury'
+  | 'sponsors'
+  | 'support_station'
+  | 'table'
+
+export type SupportStationKind = 'makeup' | 'hairdresser' | 'other'
+
+export interface VenueLayoutZone {
+  id: string
+  type: VenueZoneType
+  label: string
+  /** Posição X em coordenadas lógicas do canvas (0–canvas_width) */
+  x: number
+  y: number
+  width: number
+  height: number
+  rotation?: number
+  supportKind?: SupportStationKind
+  /** Lugares na mesa (tipo `table`) */
+  seats?: number
+}
+
+export interface VenueLayout {
+  event_id: string
+  canvas_width: number
+  canvas_height: number
+  hall_label?: string
+  zones: VenueLayoutZone[]
+  updated_at?: string
+}
+
 export interface EventData {
   event: Event
   schedule: ScheduleBlock[]
@@ -136,5 +169,6 @@ export interface EventData {
   availability: VolunteerAvailability[]
   contributions: Contribution[]
   tasks: VolunteerTask[]
+  venueLayout: VenueLayout | null
   auditLog: AuditLogEntry[]
 }
