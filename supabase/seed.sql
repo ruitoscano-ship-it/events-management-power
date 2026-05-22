@@ -1,14 +1,17 @@
 -- Dados de exemplo: Campeonato de Dança de Salão Desportiva
 -- Substituir event_id após criar o evento, ou usar o insert completo abaixo
 
-insert into events (id, name, description, venue, event_date, sport_type)
+insert into events (id, name, description, venue, event_date, sport_type, pairs_count, day_label, edition_label)
 values (
   'a0000000-0000-4000-8000-000000000001',
   'Campeonato Regional de Dança de Salão Desportiva 2026',
   'Prova WDSF — Standard, Latin e Ten Dance. Organização da Associação Regional.',
   'Pavilhão Desportivo Municipal, Porto',
   '2026-06-14',
-  'danca_salao'
+  'danca_salao',
+  192,
+  'Sábado',
+  'FPDD — EDIÇÃO 2026'
 );
 
 insert into schedule_blocks (event_id, title, description, starts_at, ends_at, location, block_type, sort_order) values

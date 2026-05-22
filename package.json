@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test:supabase": "node --env-file=.env scripts/test-supabase.mjs",
     "db:migrate": "node --env-file=.env scripts/run-supabase-sql.mjs",
+    "db:reset": "node --env-file=.env scripts/db-reset.mjs",
     "pages:env": "node --env-file=.env scripts/configure-pages-env.mjs",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=events-management-power",
     "deploy:preview": "npm run build && wrangler pages deploy dist --project-name=events-management-power --branch=preview"
