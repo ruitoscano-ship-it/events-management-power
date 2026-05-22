@@ -21,7 +21,7 @@ export function OrganizerTeamPage() {
           <div>
             <h2 className="text-xl font-bold text-white uppercase">Gerir voluntários</h2>
             <p className="mt-1.5 text-base leading-relaxed text-slate-300 sm:text-sm sm:text-slate-400">
-              Edita dados base ou inativa — utilizadores inativos ficam na tab Admin.
+              Seleciona um voluntário para editar ou inativar. Inativos ficam na tab Admin.
             </p>
           </div>
           <button
@@ -34,48 +34,61 @@ export function OrganizerTeamPage() {
           </button>
         </div>
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 motion-stagger">
-          {team.map((v) => (
-            <li
-              key={v.id}
-              className={`rounded-xl border p-4 ${
-                selected?.id === v.id
-                  ? 'border-[#ff2d6a] bg-[#ff2d6a]/10'
-                  : 'border-[#2a2a3d] bg-[#12121c]'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
-                  style={{ backgroundColor: avatarColor(v.id) }}
-                >
-                  {volunteerInitials(v.name)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-white truncate">{v.name}</p>
-                  {v.role && <p className="text-xs text-[#ff2d6a]">{v.role}</p>}
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
+          {team.map((v) => {
+            const isSelected = selected?.id === v.id
+            return (
+              <li key={v.id}>
                 <button
                   type="button"
-                  onClick={() => { setSelected(v); setModal('edit') }}
-                  className="text-xs text-slate-400 hover:text-white border border-[#2a2a3d] rounded px-2 py-1"
+                  onClick={() => setSelected(isSelected ? null : v)}
+                  className={`w-full rounded-xl border p-4 text-left transition-colors active:scale-[0.99] ${
+                    isSelected
+                      ? 'border-[#ff2d6a] bg-[#ff2d6a]/10'
+                      : 'border-[#2a2a3d] bg-[#12121c] hover:border-[#ff2d6a]/40'
+                  }`}
+                  aria-pressed={isSelected}
                 >
-                  Editar
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                      style={{ backgroundColor: avatarColor(v.id) }}
+                    >
+                      {volunteerInitials(v.name)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-white truncate">{v.name}</p>
+                      {v.role && <p className="text-xs text-[#ff2d6a]">{v.role}</p>}
+                    </div>
+                  </div>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm(`Inativar ${v.name}?`)) setVolunteerActive(v.id, false)
-                  }}
-                  className="inline-flex items-center gap-1 text-xs text-amber-400 border border-amber-500/40 rounded px-2 py-1 hover:bg-amber-500/10"
-                >
-                  <UserX className="h-3 w-3" />
-                  Inativar
-                </button>
-              </div>
-            </li>
-          ))}
+                {isSelected && (
+                  <div className="mt-2 flex flex-wrap gap-2 pl-1">
+                    <button
+                      type="button"
+                      onClick={() => setModal('edit')}
+                      className="min-h-10 text-xs font-medium text-slate-300 hover:text-white border border-[#2a2a3d] rounded-lg px-3 py-2"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Inativar ${v.name}?`)) {
+                          void setVolunteerActive(v.id, false).then(() =>
+                            setSelected(null),
+                          )
+                        }
+                      }}
+                      className="inline-flex min-h-10 items-center gap-1 text-xs font-medium text-amber-400 border border-amber-500/40 rounded-lg px-3 py-2 hover:bg-amber-500/10"
+                    >
+                      <UserX className="h-3.5 w-3.5" />
+                      Inativar
+                    </button>
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </section>
 
