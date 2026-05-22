@@ -4,6 +4,8 @@ import type {
   Contribution,
   Event,
   EventData,
+  EventSponsor,
+  RevenueEntry,
   ScheduleBlock,
   VenueLayout,
   Volunteer,
@@ -19,6 +21,8 @@ type Table =
   | 'contributions'
   | 'volunteer_tasks'
   | 'venue_layouts'
+  | 'event_sponsors'
+  | 'revenue_entries'
 
 async function dbUpsert(table: Table, row: object): Promise<void> {
   if (!supabase) return
@@ -64,6 +68,22 @@ export async function syncTask(task: VolunteerTask, useDb: boolean) {
 
 export async function syncVenueLayout(layout: VenueLayout, useDb: boolean) {
   if (useDb) await dbUpsert('venue_layouts', venueLayoutToDbPayload(layout))
+}
+
+export async function syncSponsor(sponsor: EventSponsor, useDb: boolean) {
+  if (useDb) await dbUpsert('event_sponsors', sponsor)
+}
+
+export async function syncRevenueEntry(entry: RevenueEntry, useDb: boolean) {
+  if (useDb) await dbUpsert('revenue_entries', entry)
+}
+
+export async function removeSponsor(id: string, useDb: boolean) {
+  if (useDb) await dbDelete('event_sponsors', id)
+}
+
+export async function removeRevenueEntry(id: string, useDb: boolean) {
+  if (useDb) await dbDelete('revenue_entries', id)
 }
 
 export async function removeSchedule(id: string, useDb: boolean) {

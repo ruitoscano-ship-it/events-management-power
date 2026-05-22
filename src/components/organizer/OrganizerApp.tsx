@@ -7,7 +7,9 @@ import { OrganizerLogisticsPage } from './OrganizerLogisticsPage'
 import { OrganizerNav, ORGANIZER_TAB_ORDER, type OrganizerTab } from './OrganizerNav'
 import { OrganizerSchedulePage } from './OrganizerSchedulePage'
 import { OrganizerAdminPage } from './OrganizerAdminPage'
+import { OrganizerFinancialsPage } from './OrganizerFinancialsPage'
 import { OrganizerSalaoPage } from './OrganizerSalaoPage'
+import { OrganizerSponsorsPage } from './OrganizerSponsorsPage'
 import { OrganizerTeamPage } from './OrganizerTeamPage'
 
 export function OrganizerApp() {
@@ -27,6 +29,8 @@ export function OrganizerApp() {
         {tab === 'logistica' && <OrganizerLogisticsPage />}
         {tab === 'equipa' && <OrganizerTeamPage />}
         {tab === 'salao' && <OrganizerSalaoPage />}
+        {tab === 'sponsors' && <OrganizerSponsorsPage />}
+        {tab === 'financials' && <OrganizerFinancialsPage />}
         {tab === 'admin' && <OrganizerAdminPage />}
       </PageTransition>
     </div>

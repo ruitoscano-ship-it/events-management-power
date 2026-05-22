@@ -1,6 +1,8 @@
 -- Apaga todos os dados da app (mantém tabelas, funções e políticas RLS)
 -- Ordem: filhos primeiro; CASCADE onde aplicável
 
+truncate table revenue_entries restart identity cascade;
+truncate table event_sponsors restart identity cascade;
 truncate table volunteer_availability restart identity cascade;
 truncate table volunteer_tasks restart identity cascade;
 truncate table contributions restart identity cascade;

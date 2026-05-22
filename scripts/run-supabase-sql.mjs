@@ -52,6 +52,7 @@ const files = [
   'supabase/migrations/001_app_columns.sql',
   'supabase/migrations/002_events_day_pairs.sql',
   'supabase/migrations/003_venue_layout.sql',
+  'supabase/migrations/004_sponsors_financials.sql',
   'supabase/seed.sql',
 ]
 

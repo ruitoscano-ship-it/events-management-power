@@ -28,6 +28,8 @@ const pastEventData: EventData = normalizeEventData({
   contributions: [],
   tasks: [],
   venueLayout: null,
+  sponsors: [],
+  revenueEntries: [],
   auditLog: [],
 })
 

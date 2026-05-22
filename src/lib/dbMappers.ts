@@ -2,7 +2,13 @@ import { dayLabelFromDate } from './normalize'
 import type {
   Contribution,
   Event,
+  EventSponsor,
+  RevenueEntry,
   ScheduleBlock,
+  SponsorStatus,
+  SponsorshipKind,
+  RevenueEntryType,
+  RevenueSource,
   Volunteer,
   VolunteerAvailability,
   VolunteerTask,
@@ -101,6 +107,49 @@ export function mapTaskRow(row: Record<string, unknown>): VolunteerTask {
     starts_at: row.starts_at != null ? String(row.starts_at) : null,
     ends_at: row.ends_at != null ? String(row.ends_at) : null,
     status: row.status as VolunteerTask['status'],
+    notes: row.notes != null ? String(row.notes) : null,
+  }
+}
+
+function mapNumeric(row: Record<string, unknown>, key: string): number | null {
+  const v = row[key]
+  if (v == null || v === '') return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+export function mapSponsorRow(row: Record<string, unknown>): EventSponsor {
+  return {
+    id: String(row.id),
+    event_id: String(row.event_id),
+    name: String(row.name ?? ''),
+    sponsorship_kind: (row.sponsorship_kind as SponsorshipKind) ?? 'cash',
+    amount: mapNumeric(row, 'amount'),
+    in_kind_description:
+      row.in_kind_description != null ? String(row.in_kind_description) : null,
+    status: (row.status as SponsorStatus) ?? 'promised',
+    contact_name: row.contact_name != null ? String(row.contact_name) : null,
+    contact_email: row.contact_email != null ? String(row.contact_email) : null,
+    notes: row.notes != null ? String(row.notes) : null,
+    promised_at: row.promised_at != null ? String(row.promised_at).slice(0, 10) : null,
+    received_at: row.received_at != null ? String(row.received_at).slice(0, 10) : null,
+  }
+}
+
+export function mapRevenueRow(row: Record<string, unknown>): RevenueEntry {
+  return {
+    id: String(row.id),
+    event_id: String(row.event_id),
+    source: (row.source as RevenueSource) ?? 'other',
+    entry_type: (row.entry_type as RevenueEntryType) ?? 'forecast',
+    description: row.description != null ? String(row.description) : null,
+    amount: mapNumeric(row, 'amount') ?? 0,
+    quantity: mapNumeric(row, 'quantity'),
+    unit_price: mapNumeric(row, 'unit_price'),
+    recorded_at:
+      row.recorded_at != null
+        ? String(row.recorded_at).slice(0, 10)
+        : new Date().toISOString().slice(0, 10),
     notes: row.notes != null ? String(row.notes) : null,
   }
 }

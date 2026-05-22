@@ -14,13 +14,17 @@ import {
   patchData,
   removeAvailability,
   removeContribution,
+  removeRevenueEntry,
   removeSchedule,
+  removeSponsor,
   removeTask,
   syncAvailability,
   syncTask,
   syncContribution,
   syncEvent,
+  syncRevenueEntry,
   syncSchedule,
+  syncSponsor,
   syncVenueLayout,
   syncVolunteer,
 } from '../lib/persistence'
@@ -28,6 +32,8 @@ import type {
   Contribution,
   Event,
   EventData,
+  EventSponsor,
+  RevenueEntry,
   ScheduleBlock,
   VenueLayout,
   Volunteer,
@@ -53,6 +59,10 @@ interface EventContextValue {
   saveTask: (task: VolunteerTask) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   saveVenueLayout: (layout: VenueLayout) => Promise<void>
+  saveSponsor: (sponsor: EventSponsor, isNew?: boolean) => Promise<void>
+  deleteSponsor: (id: string) => Promise<void>
+  saveRevenueEntry: (entry: RevenueEntry, isNew?: boolean) => Promise<void>
+  deleteRevenueEntry: (id: string) => Promise<void>
 }
 
 const EventContext = createContext<EventContextValue | null>(null)
@@ -315,6 +325,85 @@ export function EventProvider({ children }: { children: ReactNode }) {
     [apply, data, useDb],
   )
 
+  const saveSponsor = useCallback(
+    async (sponsor: EventSponsor, isNew = false) => {
+      if (!data) return
+      const exists = data.sponsors.some((s) => s.id === sponsor.id)
+      const sponsors = exists
+        ? data.sponsors.map((s) => (s.id === sponsor.id ? sponsor : s))
+        : [...data.sponsors, sponsor]
+      await apply(
+        patchData(data, { sponsors }),
+        () => syncSponsor(sponsor, useDb),
+        {
+          action: 'event.updated',
+          summary: `${isNew ? 'Patrocinador registado' : 'Patrocinador atualizado'}: ${sponsor.name}`,
+          entity_type: 'event',
+          entity_id: sponsor.id,
+        },
+      )
+    },
+    [apply, data, useDb],
+  )
+
+  const deleteSponsor = useCallback(
+    async (id: string) => {
+      if (!data) return
+      const s = data.sponsors.find((x) => x.id === id)
+      const sponsors = data.sponsors.filter((x) => x.id !== id)
+      await apply(
+        patchData(data, { sponsors }),
+        () => removeSponsor(id, useDb),
+        {
+          action: 'event.updated',
+          summary: `Patrocinador removido: ${s?.name ?? id}`,
+          entity_type: 'event',
+          entity_id: id,
+        },
+      )
+    },
+    [apply, data, useDb],
+  )
+
+  const saveRevenueEntry = useCallback(
+    async (entry: RevenueEntry, isNew = false) => {
+      if (!data) return
+      const exists = data.revenueEntries.some((r) => r.id === entry.id)
+      const revenueEntries = exists
+        ? data.revenueEntries.map((r) => (r.id === entry.id ? entry : r))
+        : [...data.revenueEntries, entry]
+      await apply(
+        patchData(data, { revenueEntries }),
+        () => syncRevenueEntry(entry, useDb),
+        {
+          action: 'event.updated',
+          summary: `${isNew ? 'Receita registada' : 'Receita atualizada'}: ${entry.description ?? entry.source} (${entry.amount}€)`,
+          entity_type: 'event',
+          entity_id: entry.id,
+        },
+      )
+    },
+    [apply, data, useDb],
+  )
+
+  const deleteRevenueEntry = useCallback(
+    async (id: string) => {
+      if (!data) return
+      const revenueEntries = data.revenueEntries.filter((r) => r.id !== id)
+      await apply(
+        patchData(data, { revenueEntries }),
+        () => removeRevenueEntry(id, useDb),
+        {
+          action: 'event.updated',
+          summary: 'Entrada de receita removida',
+          entity_type: 'event',
+          entity_id: id,
+        },
+      )
+    },
+    [apply, data, useDb],
+  )
+
   const value = useMemo(
     () =>
       data
@@ -336,6 +425,10 @@ export function EventProvider({ children }: { children: ReactNode }) {
             saveTask,
             deleteTask,
             saveVenueLayout,
+            saveSponsor,
+            deleteSponsor,
+            saveRevenueEntry,
+            deleteRevenueEntry,
           }
         : null,
     [
@@ -356,6 +449,10 @@ export function EventProvider({ children }: { children: ReactNode }) {
       saveTask,
       deleteTask,
       saveVenueLayout,
+      saveSponsor,
+      deleteSponsor,
+      saveRevenueEntry,
+      deleteRevenueEntry,
     ],
   )
 

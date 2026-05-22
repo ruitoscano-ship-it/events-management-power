@@ -3,7 +3,9 @@ import {
   mapAvailabilityRow,
   mapContributionRow,
   mapEventRow,
+  mapRevenueRow,
   mapScheduleRow,
+  mapSponsorRow,
   mapTaskRow,
   mapVolunteerRow,
 } from './dbMappers'
@@ -21,6 +23,8 @@ function emptyEventShell(event: Event): EventData {
     contributions: [],
     tasks: [],
     venueLayout: null,
+    sponsors: [],
+    revenueEntries: [],
     auditLog: [],
   })
 }
@@ -53,21 +57,34 @@ export async function fetchEventDataFromSupabase(
 
   const mappedEvent = mapEventRow(event as Record<string, unknown>)
 
-  const [schedule, volunteers, contributions, tasks] = await Promise.all([
-    supabase
-      .from('schedule_blocks')
-      .select('*')
-      .eq('event_id', eventId)
-      .order('starts_at'),
-    supabase.from('volunteers').select('*').eq('event_id', eventId).order('name'),
-    supabase.from('contributions').select('*').eq('event_id', eventId),
-    supabase.from('volunteer_tasks').select('*').eq('event_id', eventId),
-  ])
+  const [schedule, volunteers, contributions, tasks, sponsors, revenue] =
+    await Promise.all([
+      supabase
+        .from('schedule_blocks')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('starts_at'),
+      supabase.from('volunteers').select('*').eq('event_id', eventId).order('name'),
+      supabase.from('contributions').select('*').eq('event_id', eventId),
+      supabase.from('volunteer_tasks').select('*').eq('event_id', eventId),
+      supabase
+        .from('event_sponsors')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('name'),
+      supabase
+        .from('revenue_entries')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('recorded_at', { ascending: false }),
+    ])
 
   if (schedule.error) throw schedule.error
   if (volunteers.error) throw volunteers.error
   if (contributions.error) throw contributions.error
   if (tasks.error) throw tasks.error
+  if (sponsors.error) throw sponsors.error
+  if (revenue.error) throw revenue.error
 
   const volunteerIds = (volunteers.data ?? []).map((v) => v.id)
   let availability: EventData['availability'] = []
@@ -112,6 +129,12 @@ export async function fetchEventDataFromSupabase(
       mapTaskRow(r as Record<string, unknown>),
     ),
     venueLayout,
+    sponsors: (sponsors.data ?? []).map((r) =>
+      mapSponsorRow(r as Record<string, unknown>),
+    ),
+    revenueEntries: (revenue.data ?? []).map((r) =>
+      mapRevenueRow(r as Record<string, unknown>),
+    ),
     auditLog: cached?.auditLog ?? [],
   })
 }

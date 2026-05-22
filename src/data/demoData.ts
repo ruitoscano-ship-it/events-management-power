@@ -226,6 +226,8 @@ export const demoEventData: EventData = {
     { id: 't14', event_id: DEMO_EVENT_ID, volunteer_id: 'v-jc', schedule_block_id: 's9', title: 'Coffee break', starts_at: '2026-06-13T15:45:00+01:00', ends_at: '2026-06-13T16:30:00+01:00', status: 'assigned', notes: null },
   ],
   venueLayout: null,
+  sponsors: [],
+  revenueEntries: [],
   auditLog: [
     { id: 'log-1', at: '2026-05-15T09:00:00+01:00', action: 'event.updated', summary: 'Evento configurado: Cascais, 192 pares', entity_type: 'event', entity_id: DEMO_EVENT_ID },
     { id: 'log-2', at: '2026-05-16T10:30:00+01:00', action: 'volunteer.created', summary: 'Voluntário criado: Maria Antunes', entity_type: 'volunteer', entity_id: 'v-ma' },

@@ -33,6 +33,8 @@ export function normalizeEventData(data: EventData): EventData {
   return {
     ...data,
     venueLayout: data.venueLayout ?? null,
+    sponsors: data.sponsors ?? [],
+    revenueEntries: data.revenueEntries ?? [],
     auditLog: data.auditLog ?? [],
     schedule: data.schedule.map(normalizeBlock),
     volunteers: data.volunteers.map(normalizeVolunteer),

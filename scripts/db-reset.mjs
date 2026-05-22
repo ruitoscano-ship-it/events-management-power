@@ -49,6 +49,7 @@ const steps = [
   { label: 'Schema / colunas', file: 'supabase/migrations/001_app_columns.sql' },
   { label: 'Colunas evento', file: 'supabase/migrations/002_events_day_pairs.sql' },
   { label: 'Planta salão', file: 'supabase/migrations/003_venue_layout.sql' },
+  { label: 'Sponsors e financeiro', file: 'supabase/migrations/004_sponsors_financials.sql' },
   { label: 'Contas organizador', file: 'supabase/organizer_accounts.sql' },
   { label: 'Seed evento + dados', file: 'supabase/seed.sql' },
 ]

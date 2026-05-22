@@ -162,6 +162,45 @@ export interface VenueLayout {
   updated_at?: string
 }
 
+export type SponsorStatus = 'promised' | 'confirmed' | 'received' | 'cancelled'
+
+/** Espécie de patrocínio: monetário, em espécie (bens/serviços), ou misto */
+export type SponsorshipKind = 'cash' | 'in_kind' | 'mixed'
+
+export interface EventSponsor {
+  id: string
+  event_id: string
+  name: string
+  sponsorship_kind: SponsorshipKind
+  /** Valor monetário (EUR), quando aplicável */
+  amount: number | null
+  /** Descrição do apoio em espécie */
+  in_kind_description: string | null
+  status: SponsorStatus
+  contact_name: string | null
+  contact_email: string | null
+  notes: string | null
+  promised_at: string | null
+  received_at: string | null
+}
+
+export type RevenueSource = 'bar' | 'tickets' | 'other'
+
+export type RevenueEntryType = 'forecast' | 'actual'
+
+export interface RevenueEntry {
+  id: string
+  event_id: string
+  source: RevenueSource
+  entry_type: RevenueEntryType
+  description: string | null
+  amount: number
+  quantity: number | null
+  unit_price: number | null
+  recorded_at: string
+  notes: string | null
+}
+
 export interface EventData {
   event: Event
   schedule: ScheduleBlock[]
@@ -170,5 +209,7 @@ export interface EventData {
   contributions: Contribution[]
   tasks: VolunteerTask[]
   venueLayout: VenueLayout | null
+  sponsors: EventSponsor[]
+  revenueEntries: RevenueEntry[]
   auditLog: AuditLogEntry[]
 }
