@@ -27,9 +27,8 @@ export function formatEventDateLong(eventDate: string): string {
   return format(d, "d 'de' MMMM yyyy", { locale: pt })
 }
 
-/** Dia da semana: valor da BD (`day_label`) ou calculado a partir de `event_date`. */
-export function eventWeekdayLabel(event: Pick<Event, 'event_date' | 'day_label'>): string {
-  if (event.day_label?.trim()) return event.day_label.trim()
+/** Dia da semana sempre derivado de `event_date` (evita `day_label` desatualizado na BD). */
+export function eventWeekdayLabel(event: Pick<Event, 'event_date'>): string {
   return dayLabelFromDate(event.event_date)
 }
 

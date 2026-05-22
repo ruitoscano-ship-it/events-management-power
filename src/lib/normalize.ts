@@ -41,8 +41,7 @@ export function normalizeEventData(data: EventData): EventData {
     volunteers: data.volunteers.map(normalizeVolunteer),
     event: {
       ...data.event,
-      day_label:
-        data.event.day_label ?? dayLabelFromDate(eventDate),
+      day_label: dayLabelFromDate(eventDate) || data.event.day_label,
     },
   }
 }

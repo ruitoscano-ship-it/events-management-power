@@ -42,8 +42,12 @@ export function mapEventRow(row: Record<string, unknown>): Event {
   }
 }
 
-export function eventToDbRow(event: Event): Record<string, unknown> {
-  return {
+/** Row for Supabase `events` — omits `archived_at` unless requested (column may be missing pre-migration). */
+export function eventToDbRow(
+  event: Event,
+  options?: { includeArchivedAt?: boolean },
+): Record<string, unknown> {
+  const row: Record<string, unknown> = {
     id: event.id,
     name: event.name,
     description: event.description,
@@ -53,8 +57,11 @@ export function eventToDbRow(event: Event): Record<string, unknown> {
     pairs_count: event.pairs_count ?? null,
     day_label: event.day_label ?? null,
     edition_label: event.edition_label ?? null,
-    archived_at: event.archived_at ?? null,
   }
+  if (options?.includeArchivedAt) {
+    row.archived_at = event.archived_at ?? null
+  }
+  return row
 }
 
 export function mapVolunteerRow(row: Record<string, unknown>): Volunteer {

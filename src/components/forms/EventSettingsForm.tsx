@@ -142,10 +142,7 @@ export function EventSettingsForm() {
       <p className="text-xs text-slate-500">
         Data no cabeçalho:{' '}
         <span className="text-slate-300 capitalize">
-          {formatEventDateLine({
-            event_date: eventDate,
-            day_label: dayLabelFromDate(eventDate),
-          })}
+          {formatEventDateLine({ event_date: eventDate })}
         </span>
       </p>
 

@@ -51,13 +51,35 @@ export async function syncEvent(event: Event, useDb: boolean) {
     .from('events')
     .update(row)
     .eq('id', event.id)
-    .select('id')
-    .maybeSingle()
+    .select('id, name')
 
   if (error) throw error
-  if (data?.id) return
+  if (data && data.length > 0) return
 
-  await dbUpsert('events', row, { onConflict: 'id' })
+  const { error: upsertErr } = await supabase
+    .from('events')
+    .upsert(row, { onConflict: 'id' })
+
+  if (upsertErr) throw upsertErr
+}
+
+export async function syncEventArchivedAt(
+  event: Event,
+  useDb: boolean,
+): Promise<void> {
+  if (!useDb || !supabase) return
+
+  const { error } = await supabase
+    .from('events')
+    .update({ archived_at: event.archived_at ?? null })
+    .eq('id', event.id)
+
+  if (error?.code === 'PGRST204' && error.message.includes('archived_at')) {
+    throw new Error(
+      'Coluna archived_at em falta na base de dados. Executa supabase/migrations/005_events_archived.sql no Supabase.',
+    )
+  }
+  if (error) throw error
 }
 
 export async function syncSchedule(block: ScheduleBlock, useDb: boolean) {

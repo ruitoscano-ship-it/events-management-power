@@ -17,7 +17,7 @@ import {
   patchCatalogEventMetadata,
   setEventArchivedInCatalog,
 } from '../lib/catalog'
-import { syncEvent } from '../lib/persistence'
+import { syncEvent, syncEventArchivedAt } from '../lib/persistence'
 import { fetchCatalogFromSupabase } from '../lib/supabaseData'
 import { readSyncMeta } from '../lib/syncMeta'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -281,6 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         if (isSupabaseConfigured) {
           await syncEvent(updated, true)
+          await syncEventArchivedAt(updated, true)
         }
         saveCatalog(next, isSupabaseConfigured ? 'supabase' : 'local')
         setCatalog(next)
