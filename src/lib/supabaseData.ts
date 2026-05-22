@@ -12,7 +12,7 @@ import {
 import { mapVenueLayoutRow } from './venueLayout'
 import { normalizeEventData } from './normalize'
 import { isSupabaseConfigured, supabase } from './supabase'
-import type { Event, EventData } from '../types'
+import type { Event, EventCatalog, EventData } from '../types'
 
 function emptyEventShell(event: Event): EventData {
   return normalizeEventData({
@@ -152,17 +152,31 @@ export async function buildCatalogFromSupabase(): Promise<{
 }
 
 export async function hydrateCatalogFromSupabase(): Promise<boolean> {
-  if (!isSupabaseConfigured || !supabase) return false
+  const result = await fetchCatalogFromSupabase()
+  return result.ok
+}
+
+export async function fetchCatalogFromSupabase(): Promise<{
+  catalog: EventCatalog
+  ok: boolean
+  error: string | null
+}> {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      catalog: { accounts: [], events: {} },
+      ok: false,
+      error: 'Supabase não configurado (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).',
+    }
+  }
   try {
     const { events } = await buildCatalogFromSupabase()
-    const merged = {
-      accounts: [],
-      events,
-    }
-    saveCatalog(merged, 'supabase')
-    return true
+    const catalog: EventCatalog = { accounts: [], events }
+    saveCatalog(catalog, 'supabase')
+    return { catalog, ok: true, error: null }
   } catch (e) {
-    console.error('[Supabase] hydrate catalog:', e)
-    return false
+    const msg =
+      e instanceof Error ? e.message : 'Erro ao carregar eventos do servidor.'
+    console.error('[Supabase] fetch catalog:', e)
+    return { catalog: { accounts: [], events: {} }, ok: false, error: msg }
   }
 }

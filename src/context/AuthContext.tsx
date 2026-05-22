@@ -9,14 +9,15 @@ import {
 } from 'react'
 import {
   bootstrapDataSync,
+  EMPTY_CATALOG,
   ensureVolunteerInEvent,
   isEventArchived,
-  loadCatalog,
+  resetCatalogCacheForSync,
   saveCatalog,
   setEventArchivedInCatalog,
 } from '../lib/catalog'
 import { syncEvent } from '../lib/persistence'
-import { hydrateCatalogFromSupabase } from '../lib/supabaseData'
+import { fetchCatalogFromSupabase } from '../lib/supabaseData'
 import { readSyncMeta } from '../lib/syncMeta'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { loginOrganizerAccount } from '../lib/organizerAuth'
@@ -82,8 +83,9 @@ function accountFromAuth(auth: AuthPersist): VolunteerAccount | null {
 
 interface AuthContextValue {
   catalog: EventCatalog
-  dataSource: 'local' | 'supabase'
+  dataSource: 'supabase' | 'unconfigured'
   catalogLoading: boolean
+  catalogSyncError: string | null
   refreshCatalog: () => Promise<void>
   forceSyncFromServer: () => Promise<void>
   lastSyncedAt: string | null
@@ -114,12 +116,11 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [catalog, setCatalog] = useState<EventCatalog>(() =>
-    isSupabaseConfigured ? { accounts: [], events: {} } : loadCatalog(),
+  const [catalog, setCatalog] = useState<EventCatalog>(EMPTY_CATALOG)
+  const [dataSource, setDataSource] = useState<'supabase' | 'unconfigured'>(
+    isSupabaseConfigured ? 'supabase' : 'unconfigured',
   )
-  const [dataSource, setDataSource] = useState<'local' | 'supabase'>(
-    isSupabaseConfigured ? 'supabase' : 'local',
-  )
+  const [catalogSyncError, setCatalogSyncError] = useState<string | null>(null)
   const [catalogLoading, setCatalogLoading] = useState(isSupabaseConfigured)
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() =>
     readSyncMeta().hydratedAt,
@@ -134,22 +135,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refreshCatalog = useCallback(async () => {
-    if (isSupabaseConfigured) {
-      setCatalogLoading(true)
-      const ok = await hydrateCatalogFromSupabase()
-      setDataSource(ok ? 'supabase' : 'local')
-      setCatalog(loadCatalog())
-      setLastSyncedAt(readSyncMeta().hydratedAt)
+    if (!isSupabaseConfigured) {
+      setCatalog(EMPTY_CATALOG)
+      setDataSource('unconfigured')
+      setCatalogSyncError(
+        'Supabase não configurado neste ambiente (variáveis VITE no deploy).',
+      )
+      setLastSyncedAt(null)
       setCatalogLoading(false)
       return
     }
-    setCatalog(loadCatalog())
-    setDataSource('local')
-    setLastSyncedAt(null)
+
+    setCatalogLoading(true)
+    setCatalogSyncError(null)
+    const { catalog: next, ok, error } = await fetchCatalogFromSupabase()
+    setCatalog(next)
+    setDataSource('supabase')
+    setCatalogSyncError(ok ? null : error)
+    setLastSyncedAt(ok ? readSyncMeta().hydratedAt : null)
+    setCatalogLoading(false)
   }, [])
 
   const forceSyncFromServer = useCallback(async () => {
-    bootstrapDataSync()
+    resetCatalogCacheForSync()
     await refreshCatalog()
   }, [refreshCatalog])
 
@@ -227,21 +235,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerVolunteer = useCallback(
     async (name: string, phone: string, pin: string) => {
-      const { catalog: nextCat, result } = await registerVolunteerAccount(
-        catalog,
-        name,
-        phone,
-        pin,
-      )
+      const { result } = await registerVolunteerAccount(catalog, name, phone, pin)
       if (result.ok) {
-        if (!isSupabaseConfigured) {
-          const merged = {
-            ...nextCat,
-            accounts: upsertAccount(nextCat.accounts, result.account),
-          }
-          setCatalog(merged)
-          saveCatalog(merged)
-        }
         setVolunteerSession(result.account)
         return null
       }
@@ -358,6 +353,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       catalog,
       dataSource,
       catalogLoading,
+      catalogSyncError,
       refreshCatalog,
       forceSyncFromServer,
       lastSyncedAt,
@@ -384,6 +380,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       catalog,
       dataSource,
       catalogLoading,
+      catalogSyncError,
       refreshCatalog,
       forceSyncFromServer,
       lastSyncedAt,
@@ -405,19 +402,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-function upsertAccount(
-  accounts: VolunteerAccount[],
-  account: VolunteerAccount,
-): VolunteerAccount[] {
-  const i = accounts.findIndex((a) => a.id === account.id)
-  if (i >= 0) {
-    const next = [...accounts]
-    next[i] = account
-    return next
-  }
-  return [...accounts, account]
 }
 
 export function useAuth() {

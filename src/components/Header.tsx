@@ -4,11 +4,10 @@ import type { Event } from '../types'
 
 interface HeaderProps {
   event: Event
-  source: 'supabase' | 'local'
-  isSupabaseConfigured: boolean
+  source: 'supabase' | 'unconfigured'
 }
 
-export function Header({ event, source, isSupabaseConfigured }: HeaderProps) {
+export function Header({ event, source }: HeaderProps) {
   return (
     <header className="mb-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -31,7 +30,7 @@ export function Header({ event, source, isSupabaseConfigured }: HeaderProps) {
           }`}
         >
           <Sparkles className="h-3.5 w-3.5" />
-          {source === 'supabase' ? 'Supabase' : isSupabaseConfigured ? 'Modo local (fallback)' : 'Modo demo (localStorage)'}
+          {source === 'supabase' ? 'Servidor' : 'Sem ligação ao servidor'}
         </span>
       </div>
       <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">

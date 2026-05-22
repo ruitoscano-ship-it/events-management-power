@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { isEventOngoing, listEventSummaries } from '../lib/catalog'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { EventCard } from '../components/shared/EventCard'
+import { SupabaseRequiredBanner } from '../components/shared/SupabaseRequiredBanner'
 
 interface Props {
   variant: 'organizer' | 'volunteer'
@@ -13,7 +14,7 @@ export function EventPickerPage({ variant }: Props) {
   const {
     catalog,
     catalogLoading,
-    dataSource,
+    catalogSyncError,
     volunteerAccount,
     selectEvent,
     clearActiveEvent,
@@ -101,15 +102,12 @@ export function EventPickerPage({ variant }: Props) {
               : 'Seleciona o evento.'}
         </p>
 
+        <SupabaseRequiredBanner syncError={catalogSyncError} />
+
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          {dataSource === 'supabase' && (
+          {isSupabaseConfigured && !catalogSyncError && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
-              Supabase
-            </span>
-          )}
-          {isSupabaseConfigured && dataSource === 'local' && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
-              Cache local (sem ligação)
+              Servidor
             </span>
           )}
           {lastSyncedAt && (

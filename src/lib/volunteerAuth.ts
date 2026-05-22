@@ -1,6 +1,4 @@
-import { findAccountByPhone } from './catalog'
-import { isValidPhone, isValidPin, normalizePhone } from './phone'
-import { hashPin, verifyPin } from './pinHash'
+import { isValidPhone, isValidPin } from './phone'
 import { isSupabaseConfigured, supabase } from './supabase'
 import type { EventCatalog, VolunteerAccount } from '../types'
 
@@ -60,81 +58,6 @@ async function loginSupabase(
   return { ok: true, account }
 }
 
-async function registerLocalHashed(
-  catalog: EventCatalog,
-  name: string,
-  phone: string,
-  pin: string,
-): Promise<{ result: AuthVolunteerResult; catalog: EventCatalog }> {
-  const normalized = normalizePhone(phone)
-  const existing = findAccountByPhone(catalog, normalized)
-
-  if (existing?.pin_hash) {
-    const same = await verifyPin(pin, existing.pin_hash)
-    if (same) {
-      return {
-        catalog,
-        result: {
-          ok: false,
-          error: 'Já tens conta com este telefone e código. Usa «Entrar».',
-        },
-      }
-    }
-    return {
-      catalog,
-      result: {
-        ok: false,
-        error: 'Este telefone já está registado com outro código.',
-      },
-    }
-  }
-
-  if (existing) {
-    return {
-      catalog,
-      result: { ok: false, error: 'Este número de telefone já está registado.' },
-    }
-  }
-
-  const pin_hash = await hashPin(pin)
-  const account: VolunteerAccount = {
-    id: crypto.randomUUID(),
-    name: name.trim(),
-    phone: normalized,
-    pin_hash,
-    created_at: new Date().toISOString(),
-  }
-  const next: EventCatalog = {
-    ...catalog,
-    accounts: [...catalog.accounts, account],
-  }
-  return { catalog: next, result: { ok: true, account } }
-}
-
-async function loginLocalHashed(
-  catalog: EventCatalog,
-  phone: string,
-  pin: string,
-): Promise<AuthVolunteerResult> {
-  const account = findAccountByPhone(catalog, phone)
-  if (!account) {
-    return { ok: false, error: 'Telefone ou código incorretos.' }
-  }
-
-  if (account.pin_hash) {
-    const valid = await verifyPin(pin, account.pin_hash)
-    if (!valid) return { ok: false, error: 'Telefone ou código incorretos.' }
-    return { ok: true, account: { ...account, pin_hash: undefined } }
-  }
-
-  // Legado: conta antiga com pin em texto plano
-  if ((account as VolunteerAccount & { pin?: string }).pin === pin) {
-    return { ok: true, account }
-  }
-
-  return { ok: false, error: 'Telefone ou código incorretos.' }
-}
-
 export async function registerVolunteerAccount(
   catalog: EventCatalog,
   name: string,
@@ -151,16 +74,23 @@ export async function registerVolunteerAccount(
     return { catalog, result: { ok: false, error: 'O código deve ter 4 dígitos.' } }
   }
 
-  if (isSupabaseConfigured) {
-    const result = await registerSupabase(name, phone, pin)
-    return { catalog, result }
+  if (!isSupabaseConfigured) {
+    return {
+      catalog,
+      result: {
+        ok: false,
+        error:
+          'Servidor não configurado. Contacta o organizador (Supabase em falta neste site).',
+      },
+    }
   }
 
-  return registerLocalHashed(catalog, name, phone, pin)
+  const result = await registerSupabase(name, phone, pin)
+  return { catalog, result }
 }
 
 export async function loginVolunteerAccount(
-  catalog: EventCatalog,
+  _catalog: EventCatalog,
   phone: string,
   pin: string,
 ): Promise<AuthVolunteerResult> {
@@ -171,9 +101,13 @@ export async function loginVolunteerAccount(
     return { ok: false, error: 'O código deve ter 4 dígitos.' }
   }
 
-  if (isSupabaseConfigured) {
-    return loginSupabase(phone, pin)
+  if (!isSupabaseConfigured) {
+    return {
+      ok: false,
+      error:
+        'Servidor não configurado. Contacta o organizador (Supabase em falta neste site).',
+    }
   }
 
-  return loginLocalHashed(catalog, phone, pin)
+  return loginSupabase(phone, pin)
 }

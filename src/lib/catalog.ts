@@ -1,4 +1,3 @@
-import { demoEventData, DEMO_EVENT_ID } from '../data/demoData'
 import { normalizeEventData } from './normalize'
 import { newId } from './datetime'
 import { normalizePhone } from './phone'
@@ -10,6 +9,7 @@ import {
   isSupabaseCacheValid,
   markCatalogSynced,
   purgeObsoleteCaches,
+  readSyncMeta,
   type DataSourceTag,
 } from './syncMeta'
 import type {
@@ -20,59 +20,23 @@ import type {
   VolunteerAccount,
 } from '../types'
 
-export const PAST_EVENT_ID = 'a0000000-0000-4000-8000-000000000002'
+/** Legacy demo event IDs — never treat as production data. */
+const LEGACY_DEMO_EVENT_IDS = new Set([
+  'a0000000-0000-4000-8000-000000000001',
+  'a0000000-0000-4000-8000-000000000002',
+])
 
-const pastEventData: EventData = normalizeEventData({
-  event: {
-    id: PAST_EVENT_ID,
-    name: 'OPEN DE DANÇA DESPORTIVA — LISBOA 2025',
-    description: 'Edição anterior (arquivo).',
-    venue: 'Lisboa',
-    event_date: '2025-11-08',
-    sport_type: 'danca_salao',
-    pairs_count: 140,
-    day_label: 'Sábado',
-    edition_label: 'FPDD 2025',
-  },
-  schedule: [],
-  volunteers: [],
-  availability: [],
-  contributions: [],
-  tasks: [],
-  venueLayout: null,
-  sponsors: [],
-  revenueEntries: [],
-  auditLog: [],
-})
+export const EMPTY_CATALOG: EventCatalog = { accounts: [], events: {} }
 
-function seedCatalog(): EventCatalog {
-  return {
-    accounts: [],
-    events: {
-      [DEMO_EVENT_ID]: normalizeEventData(structuredClone(demoEventData)),
-      [PAST_EVENT_ID]: pastEventData,
-    },
-  }
-}
-
-function migrateLegacy(): EventCatalog | null {
-  try {
-    const raw = localStorage.getItem('eventflow-data-v4')
-    if (!raw) return null
-    const data = normalizeEventData(JSON.parse(raw) as EventData)
-    return {
-      accounts: [],
-      events: { [data.event.id]: data },
-    }
-  } catch {
-    return null
-  }
+export function catalogHasLegacyDemoEvents(catalog: EventCatalog): boolean {
+  return Object.keys(catalog.events).some((id) => LEGACY_DEMO_EVENT_IDS.has(id))
 }
 
 function parseStoredCatalog(raw: string): EventCatalog {
   const parsed = JSON.parse(raw) as EventCatalog
   const events: Record<string, EventData> = {}
   for (const [id, data] of Object.entries(parsed.events ?? {})) {
+    if (isSupabaseConfigured && LEGACY_DEMO_EVENT_IDS.has(id)) continue
     events[id] = normalizeEventData(data)
   }
   const accounts = isSupabaseConfigured ? [] : (parsed.accounts ?? [])
@@ -80,32 +44,56 @@ function parseStoredCatalog(raw: string): EventCatalog {
 }
 
 /**
- * Inicialização com Supabase: limpa caches antigos e força nova hidratação do servidor.
+ * Remove legacy demo caches so new browsers/devices always load from Supabase.
  */
 export function bootstrapDataSync(): void {
   purgeObsoleteCaches()
-  if (isSupabaseConfigured) {
+  if (!isSupabaseConfigured) return
+
+  const meta = localStorage.getItem(CATALOG_STORAGE_KEY)
+  if (meta) {
+    try {
+      const catalog = parseStoredCatalog(meta)
+      if (catalogHasLegacyDemoEvents(catalog)) {
+        clearCatalogCache()
+        return
+      }
+    } catch {
+      clearCatalogCache()
+    }
+  }
+
+  if (readSyncMeta().dataSource === 'local') {
     clearCatalogCache()
   }
 }
 
+/** Wipes catalog cache before a forced server sync. */
+export function resetCatalogCacheForSync(): void {
+  purgeObsoleteCaches()
+  clearCatalogCache()
+}
+
 export function loadCatalog(): EventCatalog {
-  if (isSupabaseConfigured && !isSupabaseCacheValid()) {
-    return { accounts: [], events: {} }
+  if (!isSupabaseConfigured) {
+    return EMPTY_CATALOG
+  }
+
+  if (!isSupabaseCacheValid()) {
+    return EMPTY_CATALOG
   }
 
   const raw = localStorage.getItem(CATALOG_STORAGE_KEY)
-  if (raw) {
-    return parseStoredCatalog(raw)
+  if (!raw) {
+    return EMPTY_CATALOG
   }
 
-  if (isSupabaseConfigured) {
-    return { accounts: [], events: {} }
+  const catalog = parseStoredCatalog(raw)
+  if (catalogHasLegacyDemoEvents(catalog)) {
+    clearCatalogCache()
+    return EMPTY_CATALOG
   }
 
-  const migrated = migrateLegacy()
-  const catalog = migrated ?? seedCatalog()
-  saveCatalog(catalog, 'local')
   return catalog
 }
 
@@ -113,8 +101,11 @@ export function saveCatalog(
   catalog: EventCatalog,
   source: DataSourceTag = isSupabaseConfigured ? 'supabase' : 'local',
 ): void {
+  if (isSupabaseConfigured && catalogHasLegacyDemoEvents(catalog)) {
+    return
+  }
   localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(catalog))
-  markCatalogSynced(source)
+  markCatalogSynced(isSupabaseConfigured ? 'supabase' : source)
 }
 
 export function isEventArchived(event: Event): boolean {

@@ -1,8 +1,9 @@
 import { Shield, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { SupabaseRequiredBanner } from '../components/shared/SupabaseRequiredBanner'
 
 export function EntryPage() {
-  const { startOrganizer, startVolunteer } = useAuth()
+  const { startOrganizer, startVolunteer, catalogSyncError } = useAuth()
 
   return (
     <div className="min-h-dvh bg-[#0a0a12] flex flex-col">
@@ -18,6 +19,8 @@ export function EntryPage() {
             Gestão de eventos desportivos — voluntários e organização.
           </p>
         </div>
+
+        <SupabaseRequiredBanner syncError={catalogSyncError} />
 
         <div className="space-y-3">
           <button

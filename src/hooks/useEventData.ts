@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { loadCatalog, saveCatalog } from '../lib/catalog'
+import { EMPTY_CATALOG, saveCatalog } from '../lib/catalog'
 import {
   buildCatalogFromSupabase,
   fetchEventDataFromSupabase,
@@ -50,17 +50,16 @@ export function useEventData(eventId: string | null) {
         const msg = e instanceof Error ? e.message : 'Erro ao carregar Supabase'
         setError(msg)
         console.error('[Supabase] load event:', e)
-        setCatalog({ accounts: [], events: {} })
+        setCatalog(EMPTY_CATALOG)
         setState('ready')
         return
       }
     }
 
-    const cat = loadCatalog()
-    if (!cat.events[eventId]) {
-      setError('Evento não encontrado.')
-    }
-    setCatalog(cat)
+    setError(
+      'Ligação ao Supabase em falta. Configura VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no deploy.',
+    )
+    setCatalog(EMPTY_CATALOG)
     setFetchedAt(null)
     setState('ready')
   }, [eventId, useDb])
@@ -100,7 +99,7 @@ export function useEventData(eventId: string | null) {
     state,
     error,
     fetchedAt,
-    source: useDb ? ('supabase' as const) : ('local' as const),
+    source: useDb ? ('supabase' as const) : ('unconfigured' as const),
     reload: load,
     persist,
     isSupabaseConfigured,

@@ -66,7 +66,7 @@ O projeto inclui `wrangler.toml` (output `dist`), `public/_redirects` (SPA) e `p
 | `VITE_SUPABASE_URL` | Supabase → **Project Settings** → **API** → **Project URL** (`https://….supabase.co`) |
 | `VITE_SUPABASE_ANON_KEY` | Supabase → **API** → **anon public** |
 
-Sem `VITE_*`, a app funciona em modo **localStorage** (demo).
+Sem `VITE_*` no build, a app **não** carrega dados (mostra aviso); todos os dispositivos devem usar o mesmo Supabase.
 
 6. **Save and Deploy**. Cada push a `main` dispara um novo deploy.
 

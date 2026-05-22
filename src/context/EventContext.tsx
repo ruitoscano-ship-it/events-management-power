@@ -43,7 +43,7 @@ import type {
 
 interface EventContextValue {
   data: EventData
-  source: 'supabase' | 'local'
+  source: 'supabase' | 'unconfigured'
   saving: boolean
   isSupabaseConfigured: boolean
   saveEvent: (event: Event) => Promise<void>

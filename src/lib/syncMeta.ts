@@ -9,6 +9,7 @@ const OBSOLETE_STORAGE_KEYS = [
   'eventflow-data-v4',
   'eventflow-data-v3',
   'eventflow-data-v2',
+  'eventflow-data-v1',
 ] as const
 
 export type DataSourceTag = 'supabase' | 'local'

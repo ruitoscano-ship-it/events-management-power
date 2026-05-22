@@ -1,8 +1,5 @@
 import { isSupabaseConfigured, supabase } from './supabase'
 
-const LOCAL_ORGANIZER_USER = 'admin'
-const LOCAL_ORGANIZER_PASS = 'admin'
-
 export type AuthOrganizerResult =
   | { ok: true; organizerId: string; username: string; displayName: string }
   | { ok: false; error: string }
@@ -39,27 +36,16 @@ async function loginSupabase(
   }
 }
 
-function loginLocal(username: string, password: string): AuthOrganizerResult {
-  if (
-    username.trim().toLowerCase() !== LOCAL_ORGANIZER_USER ||
-    password !== LOCAL_ORGANIZER_PASS
-  ) {
-    return { ok: false, error: 'Utilizador ou palavra-passe incorretos.' }
-  }
-  return {
-    ok: true,
-    organizerId: 'local-organizer',
-    username: LOCAL_ORGANIZER_USER,
-    displayName: 'Administrador (local)',
-  }
-}
-
 export async function loginOrganizerAccount(
   username: string,
   password: string,
 ): Promise<AuthOrganizerResult> {
-  if (isSupabaseConfigured) {
-    return loginSupabase(username, password)
+  if (!isSupabaseConfigured) {
+    return {
+      ok: false,
+      error:
+        'Servidor não configurado. Define VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no deploy.',
+    }
   }
-  return loginLocal(username, password)
+  return loginSupabase(username, password)
 }
