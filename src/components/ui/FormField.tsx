@@ -25,3 +25,6 @@ export const selectClass = inputClass
 /** Botão de submissão visível em modais (brand-* não está no tema Tailwind) */
 export const submitButtonClass =
   'w-full min-h-11 rounded-lg bg-[#ff2d6a] py-2.5 text-sm font-semibold text-white hover:bg-[#e0265d] disabled:opacity-60 transition-colors'
+
+export const cancelButtonClass =
+  'w-full min-h-11 rounded-lg border border-slate-300 bg-white py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors'

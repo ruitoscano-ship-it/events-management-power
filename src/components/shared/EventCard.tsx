@@ -49,7 +49,7 @@ export function EventCard({ event, onSelect, footer, selectable = true }: Props)
                 : 'bg-slate-500/20 text-slate-400'
           }`}
         >
-          {archived ? 'Arquivado' : ongoing ? 'Em curso' : 'Passado'}
+          {archived ? 'Encerrado' : ongoing ? 'Em curso' : 'Passado'}
         </span>
       </div>
       <ul className="mt-3 space-y-1.5 text-xs text-slate-400">

@@ -8,7 +8,7 @@ import { ScheduleInlineTable } from './ScheduleInlineTable'
 import { StatCards } from './StatCards'
 
 export function OrganizerSchedulePage() {
-  const { data } = useEvent()
+  const { data, eventClosed } = useEvent()
   const [addOpen, setAddOpen] = useState(false)
   const stats = scheduleStats(data.schedule, data.event.pairs_count)
 
@@ -18,11 +18,13 @@ export function OrganizerSchedulePage() {
         <p className="max-w-xl text-base leading-relaxed text-slate-300 sm:text-sm sm:text-slate-400">
           Define o cronograma do dia. Este horário é visível para organizadores e voluntários.
         </p>
-        <ActionBar
-          variant="dark"
-          onAdd={() => setAddOpen(true)}
-          addLabel="Novo bloco"
-        />
+        {!eventClosed && (
+          <ActionBar
+            variant="dark"
+            onAdd={() => setAddOpen(true)}
+            addLabel="Novo bloco"
+          />
+        )}
       </div>
 
       <div className="mb-6">

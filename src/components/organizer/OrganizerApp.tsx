@@ -14,12 +14,17 @@ import { OrganizerTeamPage } from './OrganizerTeamPage'
 
 export function OrganizerApp() {
   const [tab, setTab] = useState<OrganizerTab>('horario')
-  const { saving } = useEvent()
+  const { saving, eventClosed } = useEvent()
   const direction = useTabDirection(tab, ORGANIZER_TAB_ORDER)
 
   return (
     <div className="min-h-dvh bg-[#0a0a12]">
       <EventHeader />
+      {eventClosed && (
+        <p className="text-center text-xs font-semibold uppercase tracking-wide text-amber-300/90 bg-amber-500/10 border-b border-amber-500/20 py-2 px-4">
+          Evento encerrado — apenas consulta
+        </p>
+      )}
       <OrganizerNav active={tab} onChange={setTab} />
       {saving && (
         <p className="text-center text-sm text-[#ff2d6a] py-1.5 motion-fade">A guardar…</p>

@@ -55,7 +55,7 @@ export interface Event {
   pairs_count?: number | null
   day_label?: string | null
   edition_label?: string | null
-  /** When set, event is hidden from the picker (organizers can restore). */
+  /** When set, event is closed (read-only / consultation; organizers can reopen with audit). */
   archived_at?: string | null
 }
 

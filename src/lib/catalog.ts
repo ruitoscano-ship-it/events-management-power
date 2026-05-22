@@ -112,6 +112,11 @@ export function isEventArchived(event: Event): boolean {
   return Boolean(event.archived_at)
 }
 
+/** Evento encerrado — apenas consulta (mesmo campo `archived_at`). */
+export function isEventClosed(event: Event): boolean {
+  return isEventArchived(event)
+}
+
 export function listEventSummaries(
   catalog: EventCatalog,
   options?: { includeArchived?: boolean },
@@ -161,16 +166,20 @@ export function setEventArchivedInCatalog(
   catalog: EventCatalog,
   eventId: string,
   archived: boolean,
+  mutate?: (data: EventData) => EventData,
 ): EventCatalog {
   const data = catalog.events[eventId]
   if (!data) throw new Error('Evento não encontrado')
-  const nextData = normalizeEventData({
+  let nextData = normalizeEventData({
     ...data,
     event: {
       ...data.event,
       archived_at: archived ? new Date().toISOString() : null,
     },
   })
+  if (mutate) {
+    nextData = normalizeEventData(mutate(nextData))
+  }
   return {
     ...catalog,
     events: { ...catalog.events, [eventId]: nextData },

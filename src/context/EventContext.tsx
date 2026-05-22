@@ -7,6 +7,12 @@ import {
   type ReactNode,
 } from 'react'
 import { appendAuditLog, type AuditInput } from '../lib/audit'
+import { isEventClosed } from '../lib/catalog'
+import {
+  closeEventData,
+  reopenEventData,
+  validateReopenJustification,
+} from '../lib/eventLifecycle'
 import { LoadingState } from '../components/LoadingState'
 import { useAuth } from './AuthContext'
 import { useEventData } from '../hooks/useEventData'
@@ -22,6 +28,7 @@ import {
   syncTask,
   syncContribution,
   syncEvent,
+  syncEventArchivedAt,
   syncRevenueEntry,
   syncSchedule,
   syncSponsor,
@@ -42,11 +49,17 @@ import type {
   VolunteerTask,
 } from '../types'
 
+export const EVENT_CLOSED_MESSAGE =
+  'Evento encerrado — apenas consulta. Reabre o evento no separador Admin para editar.'
+
 interface EventContextValue {
   data: EventData
   source: 'supabase' | 'unconfigured'
   saving: boolean
+  eventClosed: boolean
   isSupabaseConfigured: boolean
+  closeEvent: () => Promise<string | null>
+  reopenEvent: (justification: string) => Promise<string | null>
   saveEvent: (event: Event) => Promise<string | null>
   saveSchedule: (block: ScheduleBlock, isNew?: boolean) => Promise<void>
   saveScheduleInline: (
@@ -90,14 +103,25 @@ export function EventProvider({ children }: { children: ReactNode }) {
   } = useEventData(activeEventId)
   const [saving, setSaving] = useState(false)
 
+  const eventClosed = Boolean(data && isEventClosed(data.event))
+
   const apply = useCallback(
-    async (next: EventData, sync?: () => Promise<void>, audit?: AuditInput) => {
+    async (
+      next: EventData,
+      sync?: () => Promise<void>,
+      audit?: AuditInput,
+      options?: { allowWhenClosed?: boolean },
+    ) => {
       if (!data) return
+      if (!options?.allowWhenClosed && isEventClosed(data.event)) {
+        throw new Error(EVENT_CLOSED_MESSAGE)
+      }
       setSaving(true)
       try {
         const payload = audit ? appendAuditLog(next, audit) : next
         persist(payload)
         markLocalEdit()
+        patchCatalogEvent(payload.event)
         if (sync) await sync()
       } catch (e) {
         console.error('[EventContext] apply:', e)
@@ -106,7 +130,51 @@ export function EventProvider({ children }: { children: ReactNode }) {
         setSaving(false)
       }
     },
-    [data, persist, markLocalEdit],
+    [data, persist, markLocalEdit, patchCatalogEvent],
+  )
+
+  const closeEvent = useCallback(async (): Promise<string | null> => {
+    if (!data) return 'Dados do evento não disponíveis.'
+    if (isEventClosed(data.event)) return 'Este evento já está encerrado.'
+    const next = closeEventData(data)
+    try {
+      await apply(
+        next,
+        async () => {
+          await syncEvent(next.event, useDb)
+          await syncEventArchivedAt(next.event, useDb)
+        },
+        undefined,
+      )
+      return null
+    } catch (e) {
+      return e instanceof Error ? e.message : 'Erro ao encerrar o evento.'
+    }
+  }, [apply, data, useDb])
+
+  const reopenEvent = useCallback(
+    async (justification: string): Promise<string | null> => {
+      if (!data) return 'Dados do evento não disponíveis.'
+      if (!isEventClosed(data.event)) return 'Este evento não está encerrado.'
+      const validation = validateReopenJustification(justification)
+      if (validation) return validation
+      const next = reopenEventData(data, justification)
+      try {
+        await apply(
+          next,
+          async () => {
+            await syncEvent(next.event, useDb)
+            await syncEventArchivedAt(next.event, useDb)
+          },
+          undefined,
+          { allowWhenClosed: true },
+        )
+        return null
+      } catch (e) {
+        return e instanceof Error ? e.message : 'Erro ao reabrir o evento.'
+      }
+    },
+    [apply, data, useDb],
   )
 
   const saveEvent = useCallback(
@@ -482,7 +550,10 @@ export function EventProvider({ children }: { children: ReactNode }) {
             data,
             source,
             saving,
+            eventClosed,
             isSupabaseConfigured,
+            closeEvent,
+            reopenEvent,
             saveEvent,
             saveSchedule,
             saveScheduleInline,
@@ -509,9 +580,12 @@ export function EventProvider({ children }: { children: ReactNode }) {
       data,
       source,
       saving,
+      eventClosed,
       fetchedAt,
       isSupabaseConfigured,
       reload,
+      closeEvent,
+      reopenEvent,
       saveEvent,
       saveSchedule,
       saveScheduleInline,

@@ -1,8 +1,9 @@
-import { Archive, ArrowLeft, Loader2, LogOut, Undo2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Lock, LogOut, Undo2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { isEventOngoing, listEventSummaries } from '../lib/catalog'
 import { isSupabaseConfigured } from '../lib/supabase'
+import { ReopenJustificationModal } from '../components/organizer/ReopenJustificationModal'
 import { EventCard } from '../components/shared/EventCard'
 import { LazyEventList } from '../components/shared/LazyEventList'
 import { SupabaseRequiredBanner } from '../components/shared/SupabaseRequiredBanner'
@@ -23,11 +24,12 @@ export function EventPickerPage({ variant }: Props) {
     exitToEntry,
     logoutOrganizer,
     logoutVolunteer,
-    archiveEvent,
-    restoreEvent,
+    closeEvent,
+    reopenEvent,
   } = useAuth()
   const [busyId, setBusyId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
+  const [reopenTarget, setReopenTarget] = useState<Event | null>(null)
 
   const retrieving = catalogLoading
 
@@ -43,26 +45,30 @@ export function EventPickerPage({ variant }: Props) {
     }
   }, [catalog])
 
-  async function handleArchive(eventId: string, name: string) {
+  async function handleClose(eventId: string, name: string) {
     if (
       !window.confirm(
-        `Arquivar «${name}»?\n\nDeixa de aparecer na lista para organizadores e voluntários. Os dados mantêm-se na base de dados.`,
+        `Encerrar «${name}»?\n\nFica apenas disponível para consulta. A edição fica bloqueada até reabrires com justificação no audit log.`,
       )
     ) {
       return
     }
     setBusyId(eventId)
-    const err = await archiveEvent(eventId)
+    const err = await closeEvent(eventId)
     setBusyId(null)
     if (err) window.alert(err)
   }
 
-  async function handleRestore(eventId: string, name: string) {
-    if (!window.confirm(`Restaurar «${name}» na lista de eventos?`)) return
-    setBusyId(eventId)
-    const err = await restoreEvent(eventId)
+  async function handleReopenConfirm(justification: string) {
+    if (!reopenTarget) return
+    setBusyId(reopenTarget.id)
+    const err = await reopenEvent(reopenTarget.id, justification)
     setBusyId(null)
-    if (err) window.alert(err)
+    if (err) {
+      window.alert(err)
+      return
+    }
+    setReopenTarget(null)
   }
 
   function handleBack() {
@@ -80,11 +86,11 @@ export function EventPickerPage({ variant }: Props) {
             <button
               type="button"
               disabled={busyId === event.id}
-              onClick={() => void handleArchive(event.id, event.name)}
+              onClick={() => void handleClose(event.id, event.name)}
               className="inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-amber-300 hover:bg-amber-500/20 disabled:opacity-50"
             >
-              <Archive className="h-3.5 w-3.5" />
-              {busyId === event.id ? 'A arquivar…' : 'Arquivar'}
+              <Lock className="h-3.5 w-3.5" />
+              {busyId === event.id ? 'A encerrar…' : 'Encerrar'}
             </button>
           ) : undefined
         }
@@ -160,7 +166,7 @@ export function EventPickerPage({ variant }: Props) {
             <LazyEventList events={past} renderCard={renderPastCard} />
             {variant === 'organizer' && (
               <p className="mt-3 text-[11px] text-slate-600">
-                Eventos arquivados deixam de aparecer aqui para toda a equipa.
+                Eventos encerrados passam para a secção «Encerrados» (apenas consulta).
               </p>
             )}
           </section>
@@ -173,7 +179,7 @@ export function EventPickerPage({ variant }: Props) {
               onClick={() => setShowArchived((v) => !v)}
               className="text-xs font-bold tracking-widest text-slate-500 uppercase hover:text-white"
             >
-              Arquivados ({archived.length}) {showArchived ? '▾' : '▸'}
+              Encerrados ({archived.length}) {showArchived ? '▾' : '▸'}
             </button>
             {showArchived && (
               <div className="mt-3">
@@ -182,18 +188,26 @@ export function EventPickerPage({ variant }: Props) {
                   renderCard={(event) => (
                     <EventCard
                       event={event}
-                      selectable={false}
-                      onSelect={() => {}}
+                      onSelect={() => void selectEvent(event.id)}
                       footer={
-                        <button
-                          type="button"
-                          disabled={busyId === event.id}
-                          onClick={() => void handleRestore(event.id, event.name)}
-                          className="inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
-                        >
-                          <Undo2 className="h-3.5 w-3.5" />
-                          {busyId === event.id ? 'A restaurar…' : 'Restaurar'}
-                        </button>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <button
+                            type="button"
+                            onClick={() => void selectEvent(event.id)}
+                            className="inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border border-[#2a2a3d] bg-[#1a1a28] px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-200 hover:text-white"
+                          >
+                            Consultar
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === event.id}
+                            onClick={() => setReopenTarget(event)}
+                            className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+                          >
+                            <Undo2 className="h-3.5 w-3.5" />
+                            Reabrir
+                          </button>
+                        </div>
                       }
                     />
                   )}
@@ -222,6 +236,16 @@ export function EventPickerPage({ variant }: Props) {
           </button>
         )}
       </div>
+
+      {variant === 'organizer' && (
+        <ReopenJustificationModal
+          open={reopenTarget !== null}
+          eventName={reopenTarget?.name ?? ''}
+          busy={busyId === reopenTarget?.id}
+          onClose={() => setReopenTarget(null)}
+          onConfirm={handleReopenConfirm}
+        />
+      )}
     </div>
   )
 }

@@ -85,12 +85,21 @@ export function OrganizerTeamPage() {
         title={modal === 'add' ? 'Novo voluntário' : 'Editar voluntário'}
         open={modal !== null}
         onClose={() => setModal(null)}
+        contentPadding={false}
       >
         {modal === 'add' && (
-          <VolunteerForm onDone={() => setModal(null)} isNew />
+          <VolunteerForm
+            isNew
+            onDone={() => setModal(null)}
+            onCancel={() => setModal(null)}
+          />
         )}
         {modal === 'edit' && selected && (
-          <VolunteerForm initial={selected} onDone={() => setModal(null)} />
+          <VolunteerForm
+            initial={selected}
+            onDone={() => setModal(null)}
+            onCancel={() => setModal(null)}
+          />
         )}
       </Modal>
     </div>

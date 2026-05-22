@@ -298,7 +298,7 @@ function ScheduleInlineCard({ block, eventDate, volunteers, onDelete }: RowProps
 }
 
 export function ScheduleInlineTable() {
-  const { data, deleteSchedule } = useEvent()
+  const { data, deleteSchedule, eventClosed } = useEvent()
   const [editing, setEditing] = useState(false)
   const sorted = useMemo(
     () =>
@@ -332,39 +332,41 @@ export function ScheduleInlineTable() {
           </p>
         </div>
 
-        <div
-          className="flex shrink-0 rounded-lg border border-[#2a2a3d] bg-[#0a0a12] p-1"
-          role="group"
-          aria-label="Modo do horário"
-        >
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className={`min-h-11 rounded-md px-5 text-sm font-semibold transition-colors ${
-              !editing
-                ? 'bg-[#ff2d6a] text-white'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            aria-pressed={!editing}
+        {!eventClosed && (
+          <div
+            className="flex shrink-0 rounded-lg border border-[#2a2a3d] bg-[#0a0a12] p-1"
+            role="group"
+            aria-label="Modo do horário"
           >
-            Ver
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className={`min-h-11 rounded-md px-5 text-sm font-semibold transition-colors ${
-              editing
-                ? 'bg-[#ff2d6a] text-white'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            aria-pressed={editing}
-          >
-            Editar
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className={`min-h-11 rounded-md px-5 text-sm font-semibold transition-colors ${
+                !editing
+                  ? 'bg-[#ff2d6a] text-white'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              aria-pressed={!editing}
+            >
+              Ver
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className={`min-h-11 rounded-md px-5 text-sm font-semibold transition-colors ${
+                editing
+                  ? 'bg-[#ff2d6a] text-white'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              aria-pressed={editing}
+            >
+              Editar
+            </button>
+          </div>
+        )}
       </div>
 
-      {!editing ? (
+      {eventClosed || !editing ? (
         <ScheduleTable showTitle={false} breakpoint="md" />
       ) : (
         <>

@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { newId, fromDatetimeLocal, toDatetimeLocal } from '../../lib/datetime'
-import { FormField, inputClass, selectClass } from '../ui/FormField'
+import {
+  FormField,
+  inputClass,
+  selectClass,
+  submitButtonClass,
+  cancelButtonClass,
+} from '../ui/FormField'
 import { useEvent } from '../../context/EventContext'
 import { defaultCategory } from '../../lib/schedule'
 import type { BlockType, ScheduleBlock, ScheduleCategory } from '../../types'
@@ -90,9 +96,15 @@ export function ScheduleForm({ initial, onDone }: Props) {
       <FormField label="Descrição">
         <textarea className={inputClass} rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
       </FormField>
-      <button type="submit" disabled={saving} className="w-full rounded-lg bg-brand-600 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">
-        {saving ? 'A guardar…' : 'Guardar'}
-      </button>
+
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+        <button type="button" onClick={onDone} className={`${cancelButtonClass} sm:min-w-[7.5rem]`}>
+          Cancelar
+        </button>
+        <button type="submit" disabled={saving} className={`${submitButtonClass} sm:min-w-[7.5rem]`}>
+          {saving ? 'A guardar…' : 'Guardar'}
+        </button>
+      </div>
     </form>
   )
 }

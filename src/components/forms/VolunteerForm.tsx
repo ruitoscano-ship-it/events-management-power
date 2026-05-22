@@ -4,16 +4,22 @@ import { isValidPhone, isValidPin } from '../../lib/phone'
 import { isSupabaseConfigured } from '../../lib/supabase'
 import { resetVolunteerPin } from '../../lib/volunteerAuth'
 import { useEvent } from '../../context/EventContext'
-import { FormField, inputClass, submitButtonClass } from '../ui/FormField'
+import {
+  FormField,
+  inputClass,
+  submitButtonClass,
+  cancelButtonClass,
+} from '../ui/FormField'
 import type { Volunteer } from '../../types'
 
 interface Props {
   initial?: Volunteer
   isNew?: boolean
   onDone: () => void
+  onCancel?: () => void
 }
 
-export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
+export function VolunteerForm({ initial, isNew = false, onDone, onCancel }: Props) {
   const { data, saveVolunteer } = useEvent()
   const [name, setName] = useState(initial?.name ?? '')
   const [email, setEmail] = useState(initial?.email ?? '')
@@ -31,6 +37,11 @@ export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
     initial &&
     isSupabaseConfigured &&
     Boolean(initial.account_id || (phone && isValidPhone(phone)))
+
+  function handleCancel() {
+    if (saving) return
+    ;(onCancel ?? onDone)()
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -81,99 +92,152 @@ export function VolunteerForm({ initial, isNew = false, onDone }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {formError && (
-        <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-          {formError}
-        </p>
-      )}
+    <form
+      onSubmit={handleSubmit}
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5 space-y-4">
+        {formError && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {formError}
+          </p>
+        )}
 
-      <FormField label="Nome">
-        <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} required />
-      </FormField>
-      <FormField label="Função">
-        <input className={inputClass} value={role} onChange={(e) => setRole(e.target.value)} placeholder="Catering, Logística…" />
-      </FormField>
-      <FormField label="Email">
-        <input type="email" className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} />
-      </FormField>
-      <FormField label="Telefone">
-        <input className={inputClass} value={phone} onChange={(e) => setPhone(e.target.value)} />
-      </FormField>
-      <FormField label="Notas">
-        <textarea className={inputClass} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-      </FormField>
+        <FormField label="Nome">
+          <input
+            className={inputClass}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </FormField>
+        <FormField label="Função">
+          <input
+            className={inputClass}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            placeholder="Catering, Logística…"
+          />
+        </FormField>
+        <FormField label="Email">
+          <input
+            type="email"
+            className={inputClass}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </FormField>
+        <FormField label="Telefone">
+          <input
+            className={inputClass}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            inputMode="tel"
+          />
+        </FormField>
+        <FormField label="Notas">
+          <textarea
+            className={inputClass}
+            rows={2}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </FormField>
 
-      {canResetPin && (
-        <fieldset className="rounded-lg border border-[#2a2a3d] bg-[#0a0a12] p-4 space-y-3">
-          <legend className="text-xs font-bold uppercase tracking-wide text-slate-400 px-1">
-            Acesso à app (voluntário)
-          </legend>
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={resetPin}
-              onChange={(e) => {
-                setResetPin(e.target.checked)
-                if (!e.target.checked) {
-                  setNewPin('')
-                  setConfirmPin('')
-                  setFormError(null)
-                }
-              }}
-              className="mt-1"
-            />
-            <span className="text-sm text-slate-300">
-              Redefinir código de 4 dígitos
-              <span className="block text-xs text-slate-500 mt-0.5">
-                O voluntário usa este código com o telefone para entrar na app.
+        {canResetPin && (
+          <fieldset className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <legend className="text-xs font-bold uppercase tracking-wide text-slate-600 px-1">
+              Acesso à app (voluntário)
+            </legend>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={resetPin}
+                onChange={(e) => {
+                  setResetPin(e.target.checked)
+                  if (!e.target.checked) {
+                    setNewPin('')
+                    setConfirmPin('')
+                    setFormError(null)
+                  }
+                }}
+                className="mt-1 h-4 w-4 rounded border-slate-300 accent-[#ff2d6a]"
+              />
+              <span className="text-sm text-slate-700">
+                Redefinir código de 4 dígitos
+                <span className="block text-xs text-slate-500 mt-0.5">
+                  O voluntário usa este código com o telefone para entrar na app.
+                </span>
               </span>
-            </span>
-          </label>
-          {resetPin && (
-            <>
-              <FormField label="Novo código (4 dígitos)">
-                <input
-                  className={inputClass}
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={4}
-                  pattern="\d{4}"
-                  value={newPin}
-                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  placeholder="••••"
-                  autoComplete="new-password"
-                  required={resetPin}
-                />
-              </FormField>
-              <FormField label="Confirmar código">
-                <input
-                  className={inputClass}
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={4}
-                  pattern="\d{4}"
-                  value={confirmPin}
-                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  placeholder="••••"
-                  autoComplete="new-password"
-                  required={resetPin}
-                />
-              </FormField>
-            </>
-          )}
-        </fieldset>
-      )}
+            </label>
+            {resetPin && (
+              <>
+                <FormField label="Novo código (4 dígitos)">
+                  <input
+                    className={inputClass}
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    pattern="\d{4}"
+                    value={newPin}
+                    onChange={(e) =>
+                      setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))
+                    }
+                    placeholder="••••"
+                    autoComplete="new-password"
+                    required={resetPin}
+                  />
+                </FormField>
+                <FormField label="Confirmar código">
+                  <input
+                    className={inputClass}
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    pattern="\d{4}"
+                    value={confirmPin}
+                    onChange={(e) =>
+                      setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))
+                    }
+                    placeholder="••••"
+                    autoComplete="new-password"
+                    required={resetPin}
+                  />
+                </FormField>
+              </>
+            )}
+          </fieldset>
+        )}
 
-      {!isNew && initial && isSupabaseConfigured && !canResetPin && (
-        <p className="text-xs text-slate-500 rounded-lg border border-[#2a2a3d] px-3 py-2">
-          Sem conta de acesso ligada. Adiciona um telefone válido ou o voluntário regista-se na app com o mesmo número.
-        </p>
-      )}
+        {!isNew && initial && isSupabaseConfigured && !canResetPin && (
+          <p className="text-xs text-slate-600 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            Sem conta de acesso ligada. Adiciona um telefone válido ou o voluntário
+            regista-se na app com o mesmo número.
+          </p>
+        )}
+      </div>
 
-      <button type="submit" disabled={saving} className={submitButtonClass}>
-        {saving ? 'A guardar…' : resetPin ? 'Guardar e atualizar código' : 'Guardar'}
-      </button>
+      <div className="shrink-0 flex flex-col-reverse gap-2 border-t border-slate-100 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:px-5">
+        <button
+          type="button"
+          onClick={handleCancel}
+          disabled={saving}
+          className={`${cancelButtonClass} sm:min-w-[7.5rem]`}
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={saving}
+          className={`${submitButtonClass} sm:min-w-[7.5rem]`}
+        >
+          {saving
+            ? 'A guardar…'
+            : resetPin
+              ? 'Guardar e atualizar código'
+              : 'Guardar'}
+        </button>
+      </div>
     </form>
   )
 }
