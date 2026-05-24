@@ -14,7 +14,8 @@
     "cache:reset-local": "node -e \"console.log('No browser: DevTools → Application → Local Storage → apagar chaves eventflow-* ou usar Atualizar do servidor na app.')\"",
     "pages:env": "node --env-file=.env scripts/configure-pages-env.mjs",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=events-management-power",
-    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name=events-management-power --branch=preview"
+    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name=events-management-power --branch=preview",
+    "guide:screenshots": "node scripts/capture-guide-screenshots.mjs"
   },
   "engines": {
     "node": ">=22"

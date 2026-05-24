@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react'
-import { Check, Package, Plus } from 'lucide-react'
+import { Check, Download, Package, Plus } from 'lucide-react'
 import { useEvent } from '../../context/EventContext'
+import { exportLogisticsReport } from '../../lib/logisticsReport'
 import { activeVolunteers, avatarColor, volunteerInitials } from '../../lib/volunteers'
 import { parseDisplayQuantity } from '../../lib/volunteerDashboard'
 import { LogisticsNeedForm } from '../forms/LogisticsNeedForm'
 import { Modal } from '../ui/Modal'
 
 export function OrganizerLogisticsPage() {
-  const { data, deleteContribution, markContributionComplete, saveContribution } = useEvent()
+  const { data, eventClosed, deleteContribution, markContributionComplete, saveContribution } =
+    useEvent()
   const [showAdd, setShowAdd] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
 
   const open = useMemo(
     () => data.contributions.filter((c) => !c.volunteer_id && c.status !== 'delivered'),
@@ -31,6 +34,57 @@ export function OrganizerLogisticsPage() {
 
   return (
     <div className="page-container space-y-8 sm:space-y-10">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <p className="text-sm text-slate-400 max-w-xl">
+          Exporta um relatório com o que falta e o que cada voluntário vai levar.
+        </p>
+        <div className="relative flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <button
+            type="button"
+            onClick={() => setExportOpen((v) => !v)}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-[#2a2a3d] bg-[#12121c] px-4 py-3 text-sm font-bold text-slate-200 hover:border-[#ff2d6a]/40 hover:text-white sm:min-h-11 sm:w-auto"
+            aria-expanded={exportOpen}
+          >
+            <Download className="h-4 w-4" />
+            Exportar relatório
+          </button>
+          {exportOpen && (
+            <div className="flex flex-col gap-1 rounded-lg border border-[#2a2a3d] bg-[#12121c] p-1 sm:absolute sm:right-0 sm:top-full sm:z-20 sm:mt-1 sm:min-w-[11rem] sm:shadow-xl">
+              <button
+                type="button"
+                className="rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                onClick={() => {
+                  exportLogisticsReport(data, 'csv')
+                  setExportOpen(false)
+                }}
+              >
+                Excel / CSV
+              </button>
+              <button
+                type="button"
+                className="rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                onClick={() => {
+                  exportLogisticsReport(data, 'txt')
+                  setExportOpen(false)
+                }}
+              >
+                Texto (.txt)
+              </button>
+              <button
+                type="button"
+                className="rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                onClick={() => {
+                  exportLogisticsReport(data, 'print')
+                  setExportOpen(false)
+                }}
+              >
+                Imprimir / PDF
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       <section>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between mb-4">
           <div>
@@ -39,14 +93,16 @@ export function OrganizerLogisticsPage() {
               Necessidades à espera de voluntário («eu levo»).
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAdd(true)}
-            className="inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-3 text-sm font-bold text-white sm:min-h-11 sm:w-auto sm:py-2.5"
-          >
-            <Plus className="h-4 w-4" />
-            Nova necessidade
-          </button>
+          {!eventClosed && (
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              className="inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-lg bg-[#ff2d6a] px-4 py-3 text-sm font-bold text-white sm:min-h-11 sm:w-auto sm:py-2.5"
+            >
+              <Plus className="h-4 w-4" />
+              Nova necessidade
+            </button>
+          )}
         </div>
         {open.length === 0 ? (
           <p className="text-sm text-slate-500 rounded-xl border border-[#2a2a3d] bg-[#12121c] p-6">

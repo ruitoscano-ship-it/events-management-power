@@ -10,6 +10,18 @@ Exemplo incluído: **Campeonato Regional de Dança de Salão Desportiva 2026**.
 - **Supabase** (PostgreSQL) — persistência opcional
 - **Cloudflare Pages** — deploy estático
 
+## Guia rápido (utilizadores)
+
+Instruções curtas com capturas de ecrã: **[docs/GUIA-RAPIDO.md](docs/GUIA-RAPIDO.md)**.
+
+Regenerar imagens (com `npm run dev` a correr e Supabase configurado):
+
+```bash
+npx playwright install chromium
+npm i -D playwright
+npm run guide:screenshots
+```
+
 ## Desenvolvimento local
 
 ```bash
