@@ -3,6 +3,7 @@
  * Requer DATABASE_URL no .env (Settings → Database → Connection string → URI)
  *
  * Uso: npm run db:migrate
+ *      npm run db:migrate -- supabase/migrations/007_third_party_requests.sql
  */
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
@@ -45,7 +46,7 @@ if (!databaseUrl) {
   process.exit(1)
 }
 
-const files = [
+const defaultFiles = [
   'supabase/schema.sql',
   'supabase/volunteer_accounts.sql',
   'supabase/organizer_accounts.sql',
@@ -53,8 +54,13 @@ const files = [
   'supabase/migrations/002_events_day_pairs.sql',
   'supabase/migrations/003_venue_layout.sql',
   'supabase/migrations/004_sponsors_financials.sql',
+  'supabase/migrations/005_events_archived.sql',
+  'supabase/migrations/006_reset_volunteer_pin.sql',
+  'supabase/migrations/007_third_party_requests.sql',
   'supabase/seed.sql',
 ]
+
+const files = process.argv.slice(2).length > 0 ? process.argv.slice(2) : defaultFiles
 
 async function runFile(client, relPath) {
   const path = join(root, relPath)
@@ -95,7 +101,8 @@ try {
       (select count(*)::int from events) as events,
       (select count(*)::int from volunteer_accounts) as volunteer_accounts,
       (select count(*)::int from organizer_accounts) as organizer_accounts,
-      (select count(*)::int from volunteers) as volunteers
+      (select count(*)::int from volunteers) as volunteers,
+      (select count(*)::int from third_party_requests) as third_party_requests
   `)
   console.log('\n📊 Contagens:', rows[0])
 } catch (e) {
