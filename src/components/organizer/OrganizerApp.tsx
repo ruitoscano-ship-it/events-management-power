@@ -1,10 +1,10 @@
-import { useState } from 'react'
 import { useEvent } from '../../context/EventContext'
+import { useOrganizerTabHash } from '../../hooks/useOrganizerTabHash'
 import { useTabDirection } from '../../hooks/useTabDirection'
 import { EventHeader } from '../layout/EventHeader'
 import { PageTransition } from '../ui/PageTransition'
 import { OrganizerLogisticsPage } from './OrganizerLogisticsPage'
-import { OrganizerNav, ORGANIZER_TAB_ORDER, type OrganizerTab } from './OrganizerNav'
+import { OrganizerNav, ORGANIZER_TAB_ORDER } from './OrganizerNav'
 import { OrganizerSchedulePage } from './OrganizerSchedulePage'
 import { OrganizerAdminPage } from './OrganizerAdminPage'
 import { OrganizerBarPage } from './OrganizerBarPage'
@@ -15,7 +15,7 @@ import { OrganizerTeamPage } from './OrganizerTeamPage'
 import { OrganizerThirdPartiesPage } from './OrganizerThirdPartiesPage'
 
 export function OrganizerApp() {
-  const [tab, setTab] = useState<OrganizerTab>('horario')
+  const [tab, setTab] = useOrganizerTabHash('horario')
   const { saving, eventClosed } = useEvent()
   const direction = useTabDirection(tab, ORGANIZER_TAB_ORDER)
 

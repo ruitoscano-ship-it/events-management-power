@@ -4,6 +4,7 @@ import { Lock, LockOpen } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useEvent } from '../../context/EventContext'
 import { isEventOngoing } from '../../lib/catalog'
+import { organizerTabUrl } from '../../hooks/useOrganizerTabHash'
 import { isActiveVolunteer } from '../../lib/volunteers'
 import { EventSettingsForm } from '../forms/EventSettingsForm'
 import { VolunteerForm } from '../forms/VolunteerForm'
@@ -75,6 +76,25 @@ export function OrganizerAdminPage() {
           </p>
         </div>
       )}
+
+      <section className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4 sm:p-6">
+        <h2 className="text-xl font-bold text-white uppercase">Gestão de bar</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Stock, vendas e encerramento do bar (apenas administradores).
+        </p>
+        <a
+          href="#bar"
+          className="mt-3 inline-flex rounded-lg bg-[#ff2d6a] px-4 py-2 text-sm font-medium text-white hover:bg-[#e0265d]"
+        >
+          Abrir gestão de bar
+        </a>
+        <p className="mt-3 break-all text-xs text-slate-500">
+          Ligação direta:{' '}
+          <a href="#bar" className="text-[#ff2d6a] hover:underline">
+            {organizerTabUrl('bar')}
+          </a>
+        </p>
+      </section>
 
       <section className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4 sm:p-6">
         <h2 className="text-xl font-bold text-white uppercase">Configuração do evento</h2>
