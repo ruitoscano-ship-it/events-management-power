@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   BarChart3,
   CheckCircle2,
+  Download,
   History,
   Lock,
   Package,
@@ -21,6 +22,7 @@ import {
   computeBarDashboard,
   soldQuantityForProduct,
 } from '../../lib/barManagement'
+import { exportBarMenu } from '../../lib/barMenuExport'
 import { formatEur } from '../../lib/currency'
 import { isSupabaseConfigured } from '../../lib/supabase'
 import { BarProductForm } from '../forms/BarProductForm'
@@ -54,6 +56,7 @@ export function OrganizerBarPage() {
   const [syncing, setSyncing] = useState(false)
   const [history, setHistory] = useState<BarHistoryEntry[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [menuExportOpen, setMenuExportOpen] = useState(false)
 
   const stats = useMemo(() => computeBarDashboard(data), [data])
   const canEdit = !eventClosed && !barFrozen
@@ -247,19 +250,91 @@ export function OrganizerBarPage() {
 
       {view === 'products' && (
         <section className="space-y-4">
-          {canEdit && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditProduct(null)
-                setProductModal('add')
-              }}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#ff2d6a] px-3 py-2 text-sm text-white"
-            >
-              <Plus className="h-4 w-4" />
-              Produto
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditProduct(null)
+                  setProductModal('add')
+                }}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#ff2d6a] px-3 py-2 text-sm text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Produto
+              </button>
+            )}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuExportOpen((v) => !v)}
+                disabled={data.barProducts.filter((p) => p.active && p.quantity_allocated > 0).length === 0}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#2a2a3d] bg-[#12121c] px-3 py-2 text-sm font-medium text-slate-200 hover:border-[#ff2d6a]/40 disabled:opacity-40"
+                aria-expanded={menuExportOpen}
+              >
+                <Download className="h-4 w-4" />
+                Exportar menu
+              </button>
+              {menuExportOpen && (
+                <div className="absolute left-0 top-full z-20 mt-1 min-w-[14rem] rounded-lg border border-[#2a2a3d] bg-[#12121c] p-1 shadow-xl">
+                  <button
+                    type="button"
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                    onClick={() => {
+                      exportBarMenu(data, 'print')
+                      setMenuExportOpen(false)
+                    }}
+                  >
+                    Menu A4 (imprimir / PDF)
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                    onClick={() => {
+                      exportBarMenu(data, 'table')
+                      setMenuExportOpen(false)
+                    }}
+                  >
+                    Cartão para mesa (1 cópia)
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                    onClick={() => {
+                      exportBarMenu(data, 'table-grid')
+                      setMenuExportOpen(false)
+                    }}
+                  >
+                    4 cartões por folha (recortar)
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                    onClick={() => {
+                      exportBarMenu(data, 'csv')
+                      setMenuExportOpen(false)
+                    }}
+                  >
+                    Excel / CSV
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
+                    onClick={() => {
+                      exportBarMenu(data, 'txt')
+                      setMenuExportOpen(false)
+                    }}
+                  >
+                    Texto (.txt)
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-slate-500">
+            O menu exportado inclui produtos ativos com stock alocado. Usa «Cartão para mesa»
+            ou «4 cartões por folha» para colocar nas mesas.
+          </p>
           {data.barProducts.length === 0 ? (
             <p className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-6 text-sm text-slate-500">
               Sem produtos. Adiciona artigos com quantidades recolhidas e alocadas.
