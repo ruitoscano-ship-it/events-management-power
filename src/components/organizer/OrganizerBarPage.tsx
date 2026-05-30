@@ -22,7 +22,7 @@ import {
   computeBarDashboard,
   soldQuantityForProduct,
 } from '../../lib/barManagement'
-import { exportBarMenu } from '../../lib/barMenuExport'
+import { exportBarMenu, exportBarMenuPdf } from '../../lib/barMenuExport'
 import { formatEur } from '../../lib/currency'
 import { isSupabaseConfigured } from '../../lib/supabase'
 import { BarProductForm } from '../forms/BarProductForm'
@@ -57,6 +57,7 @@ export function OrganizerBarPage() {
   const [history, setHistory] = useState<BarHistoryEntry[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [menuExportOpen, setMenuExportOpen] = useState(false)
+  const [pdfExporting, setPdfExporting] = useState(false)
 
   const stats = useMemo(() => computeBarDashboard(data), [data])
   const canEdit = !eventClosed && !barFrozen
@@ -108,6 +109,20 @@ export function OrganizerBarPage() {
     const err = await closeBarOperation({ syncRevenue })
     setClosing(false)
     if (err) window.alert(err)
+  }
+
+  async function handlePdfExport(
+    format: 'pdf-poster' | 'pdf-table' | 'pdf-table-grid',
+  ) {
+    setPdfExporting(true)
+    try {
+      await exportBarMenuPdf(data, format)
+      setMenuExportOpen(false)
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : 'Erro ao gerar PDF')
+    } finally {
+      setPdfExporting(false)
+    }
   }
 
   async function handleSyncRevenue() {
@@ -276,7 +291,38 @@ export function OrganizerBarPage() {
                 Exportar menu
               </button>
               {menuExportOpen && (
-                <div className="absolute left-0 top-full z-20 mt-1 min-w-[14rem] rounded-lg border border-[#2a2a3d] bg-[#12121c] p-1 shadow-xl">
+                <div className="absolute left-0 top-full z-20 mt-1 min-w-[15rem] rounded-lg border border-[#2a2a3d] bg-[#12121c] p-1 shadow-xl">
+                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    Descarregar PDF
+                  </p>
+                  <button
+                    type="button"
+                    disabled={pdfExporting}
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm font-medium text-[#ff2d6a] hover:bg-white/5 disabled:opacity-50"
+                    onClick={() => void handlePdfExport('pdf-poster')}
+                  >
+                    {pdfExporting ? 'A gerar PDF…' : 'PDF — Menu A4'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pdfExporting}
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-[#ff2d6a] hover:bg-white/5 disabled:opacity-50"
+                    onClick={() => void handlePdfExport('pdf-table')}
+                  >
+                    PDF — Cartão de mesa
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pdfExporting}
+                    className="w-full rounded-md px-3 py-2.5 text-left text-sm text-[#ff2d6a] hover:bg-white/5 disabled:opacity-50"
+                    onClick={() => void handlePdfExport('pdf-table-grid')}
+                  >
+                    PDF — 4 cartões / folha
+                  </button>
+                  <div className="my-1 border-t border-[#2a2a3d]" />
+                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    Imprimir no browser
+                  </p>
                   <button
                     type="button"
                     className="w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"
@@ -285,7 +331,7 @@ export function OrganizerBarPage() {
                       setMenuExportOpen(false)
                     }}
                   >
-                    Menu A4 (imprimir / PDF)
+                    Menu A4 (imprimir)
                   </button>
                   <button
                     type="button"
@@ -295,7 +341,7 @@ export function OrganizerBarPage() {
                       setMenuExportOpen(false)
                     }}
                   >
-                    Cartão para mesa (1 cópia)
+                    Cartão para mesa (imprimir)
                   </button>
                   <button
                     type="button"
@@ -305,8 +351,9 @@ export function OrganizerBarPage() {
                       setMenuExportOpen(false)
                     }}
                   >
-                    4 cartões por folha (recortar)
+                    4 cartões por folha (imprimir)
                   </button>
+                  <div className="my-1 border-t border-[#2a2a3d]" />
                   <button
                     type="button"
                     className="w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-white/5"

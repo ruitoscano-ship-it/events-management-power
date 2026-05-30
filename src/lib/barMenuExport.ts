@@ -277,7 +277,15 @@ export function barMenuToPlainText(report: BarMenuReport): string {
   return lines.filter(Boolean).join('\n')
 }
 
-export type BarMenuExportFormat = 'print' | 'table' | 'table-grid' | 'csv' | 'txt'
+export type BarMenuExportFormat =
+  | 'print'
+  | 'table'
+  | 'table-grid'
+  | 'pdf-poster'
+  | 'pdf-table'
+  | 'pdf-table-grid'
+  | 'csv'
+  | 'txt'
 
 function openPrintHtml(html: string, fallbackName: string): void {
   const w = window.open('', '_blank', 'noopener,noreferrer')
@@ -295,6 +303,11 @@ export function exportBarMenu(data: EventData, format: BarMenuExportFormat): voi
   const report = buildBarMenuReport(data)
   const slug = fileSlug(data.event.name) || 'evento'
   const datePart = data.event.event_date
+
+  if (format === 'pdf-poster' || format === 'pdf-table' || format === 'pdf-table-grid') {
+    void exportBarMenuPdf(data, format)
+    return
+  }
 
   if (format === 'csv') {
     downloadTextFile(`menu-bar-${slug}-${datePart}.csv`, barMenuToCsv(report), 'text/csv;charset=utf-8')
@@ -316,4 +329,19 @@ export function exportBarMenu(data: EventData, format: BarMenuExportFormat): voi
   const suffix =
     format === 'print' ? 'poster' : format === 'table-grid' ? 'mesas-4x' : 'mesa'
   openPrintHtml(html, `menu-bar-${suffix}-${slug}-${datePart}.html`)
+}
+
+export async function exportBarMenuPdf(
+  data: EventData,
+  format: 'pdf-poster' | 'pdf-table' | 'pdf-table-grid',
+): Promise<void> {
+  const { downloadBarMenuPdf } = await import('./barMenuPdf')
+  const report = buildBarMenuReport(data)
+  const slug = fileSlug(data.event.name) || 'evento'
+  const datePart = data.event.event_date
+  const variant =
+    format === 'pdf-poster' ? 'poster' : format === 'pdf-table-grid' ? 'table-grid' : 'table'
+  const suffix =
+    variant === 'poster' ? 'poster' : variant === 'table-grid' ? 'mesas-4x' : 'mesa'
+  downloadBarMenuPdf(report, variant, `menu-bar-${suffix}-${slug}-${datePart}.pdf`)
 }
