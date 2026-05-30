@@ -135,8 +135,13 @@ export interface VolunteerTask {
 
 export type VenueZoneType =
   | 'dance_floor'
+  | 'podium'
   | 'jury'
   | 'sponsors'
+  | 'flowers'
+  | 'floor_banner'
+  | 'entry'
+  | 'exit'
   | 'support_station'
   | 'table'
 
@@ -205,6 +210,52 @@ export interface RevenueEntry {
   notes: string | null
 }
 
+export type ThirdPartyOrgKind =
+  | 'municipality'
+  | 'parish'
+  | 'civil_protection'
+  | 'venue_owner'
+  | 'police'
+  | 'other'
+
+export type ThirdPartyMaterialCategory =
+  | 'sound'
+  | 'chairs'
+  | 'tables'
+  | 'barriers'
+  | 'lighting'
+  | 'tents'
+  | 'signage'
+  | 'other'
+
+export type ThirdPartyRequestStatus =
+  | 'draft'
+  | 'submitted'
+  | 'approved'
+  | 'denied'
+  | 'fulfilled'
+  | 'cancelled'
+
+export interface ThirdPartyRequest {
+  id: string
+  event_id: string
+  organization_name: string
+  organization_kind: ThirdPartyOrgKind
+  material_category: ThirdPartyMaterialCategory
+  item_description: string
+  quantity: string | null
+  status: ThirdPartyRequestStatus
+  reference_number: string | null
+  contact_name: string | null
+  contact_email: string | null
+  contact_phone: string | null
+  requested_at: string | null
+  needed_by: string | null
+  submitted_at: string | null
+  resolved_at: string | null
+  notes: string | null
+}
+
 export interface EventData {
   event: Event
   schedule: ScheduleBlock[]
@@ -215,5 +266,6 @@ export interface EventData {
   venueLayout: VenueLayout | null
   sponsors: EventSponsor[]
   revenueEntries: RevenueEntry[]
+  thirdPartyRequests: ThirdPartyRequest[]
   auditLog: AuditLogEntry[]
 }

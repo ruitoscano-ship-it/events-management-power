@@ -3,6 +3,7 @@ import { AnimatedNav, type NavTab } from '../ui/AnimatedNav'
 export type OrganizerTab =
   | 'horario'
   | 'logistica'
+  | 'terceiros'
   | 'equipa'
   | 'salao'
   | 'sponsors'
@@ -12,6 +13,7 @@ export type OrganizerTab =
 const tabs: readonly NavTab<OrganizerTab>[] = [
   { id: 'horario', label: 'HORÁRIO' },
   { id: 'logistica', label: 'LOGÍSTICA' },
+  { id: 'terceiros', label: 'TERCEIROS' },
   { id: 'equipa', label: 'EQUIPA' },
   { id: 'salao', label: 'SALÃO' },
   { id: 'sponsors', label: 'SPONSORS' },

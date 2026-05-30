@@ -148,6 +148,7 @@ export function patchCatalogEventMetadata(
           venueLayout: null,
           sponsors: [],
           revenueEntries: [],
+          thirdPartyRequests: [],
           auditLog: [],
         }),
       },

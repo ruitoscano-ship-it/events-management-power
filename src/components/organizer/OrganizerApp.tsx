@@ -11,6 +11,7 @@ import { OrganizerFinancialsPage } from './OrganizerFinancialsPage'
 import { OrganizerSalaoPage } from './OrganizerSalaoPage'
 import { OrganizerSponsorsPage } from './OrganizerSponsorsPage'
 import { OrganizerTeamPage } from './OrganizerTeamPage'
+import { OrganizerThirdPartiesPage } from './OrganizerThirdPartiesPage'
 
 export function OrganizerApp() {
   const [tab, setTab] = useState<OrganizerTab>('horario')
@@ -32,6 +33,7 @@ export function OrganizerApp() {
       <PageTransition pageKey={tab} direction={direction}>
         {tab === 'horario' && <OrganizerSchedulePage />}
         {tab === 'logistica' && <OrganizerLogisticsPage />}
+        {tab === 'terceiros' && <OrganizerThirdPartiesPage />}
         {tab === 'equipa' && <OrganizerTeamPage />}
         {tab === 'salao' && <OrganizerSalaoPage />}
         {tab === 'sponsors' && <OrganizerSponsorsPage />}

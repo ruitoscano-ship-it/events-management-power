@@ -8,6 +8,7 @@ import type {
   EventSponsor,
   RevenueEntry,
   ScheduleBlock,
+  ThirdPartyRequest,
   VenueLayout,
   Volunteer,
   VolunteerAvailability,
@@ -24,6 +25,7 @@ type Table =
   | 'venue_layouts'
   | 'event_sponsors'
   | 'revenue_entries'
+  | 'third_party_requests'
 
 async function dbUpsert(
   table: Table,
@@ -120,12 +122,23 @@ export async function syncRevenueEntry(entry: RevenueEntry, useDb: boolean) {
   if (useDb) await dbUpsert('revenue_entries', entry)
 }
 
+export async function syncThirdPartyRequest(
+  request: ThirdPartyRequest,
+  useDb: boolean,
+) {
+  if (useDb) await dbUpsert('third_party_requests', request)
+}
+
 export async function removeSponsor(id: string, useDb: boolean) {
   if (useDb) await dbDelete('event_sponsors', id)
 }
 
 export async function removeRevenueEntry(id: string, useDb: boolean) {
   if (useDb) await dbDelete('revenue_entries', id)
+}
+
+export async function removeThirdPartyRequest(id: string, useDb: boolean) {
+  if (useDb) await dbDelete('third_party_requests', id)
 }
 
 export async function removeSchedule(id: string, useDb: boolean) {

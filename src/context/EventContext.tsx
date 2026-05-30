@@ -23,6 +23,7 @@ import {
   removeRevenueEntry,
   removeSchedule,
   removeSponsor,
+  removeThirdPartyRequest,
   removeTask,
   syncAvailability,
   syncTask,
@@ -32,6 +33,7 @@ import {
   syncRevenueEntry,
   syncSchedule,
   syncSponsor,
+  syncThirdPartyRequest,
   syncVenueLayout,
   syncVolunteer,
 } from '../lib/persistence'
@@ -43,6 +45,7 @@ import type {
   EventSponsor,
   RevenueEntry,
   ScheduleBlock,
+  ThirdPartyRequest,
   VenueLayout,
   Volunteer,
   VolunteerAvailability,
@@ -83,6 +86,8 @@ interface EventContextValue {
   deleteSponsor: (id: string) => Promise<void>
   saveRevenueEntry: (entry: RevenueEntry, isNew?: boolean) => Promise<void>
   deleteRevenueEntry: (id: string) => Promise<void>
+  saveThirdPartyRequest: (request: ThirdPartyRequest, isNew?: boolean) => Promise<void>
+  deleteThirdPartyRequest: (id: string) => Promise<void>
 }
 
 const EventContext = createContext<EventContextValue | null>(null)
@@ -543,6 +548,48 @@ export function EventProvider({ children }: { children: ReactNode }) {
     [apply, data, useDb],
   )
 
+  const saveThirdPartyRequest = useCallback(
+    async (request: ThirdPartyRequest, isNew = false) => {
+      if (!data) return
+      const exists = data.thirdPartyRequests.some((r) => r.id === request.id)
+      const thirdPartyRequests = exists
+        ? data.thirdPartyRequests.map((r) =>
+            r.id === request.id ? request : r,
+          )
+        : [...data.thirdPartyRequests, request]
+      await apply(
+        patchData(data, { thirdPartyRequests }),
+        () => syncThirdPartyRequest(request, useDb),
+        {
+          action: 'event.updated',
+          summary: `${isNew ? 'Pedido a terceiro registado' : 'Pedido atualizado'}: ${request.organization_name} — ${request.item_description}`,
+          entity_type: 'event',
+          entity_id: request.id,
+        },
+      )
+    },
+    [apply, data, useDb],
+  )
+
+  const deleteThirdPartyRequest = useCallback(
+    async (id: string) => {
+      if (!data) return
+      const item = data.thirdPartyRequests.find((r) => r.id === id)
+      const thirdPartyRequests = data.thirdPartyRequests.filter((r) => r.id !== id)
+      await apply(
+        patchData(data, { thirdPartyRequests }),
+        () => removeThirdPartyRequest(id, useDb),
+        {
+          action: 'event.updated',
+          summary: `Pedido a terceiro removido: ${item?.organization_name ?? id}`,
+          entity_type: 'event',
+          entity_id: id,
+        },
+      )
+    },
+    [apply, data, useDb],
+  )
+
   const value = useMemo(
     () =>
       data
@@ -572,6 +619,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
             deleteSponsor,
             saveRevenueEntry,
             deleteRevenueEntry,
+            saveThirdPartyRequest,
+            deleteThirdPartyRequest,
             refreshEvent: reload,
             lastFetchedAt: fetchedAt,
           }
@@ -604,6 +653,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
       deleteSponsor,
       saveRevenueEntry,
       deleteRevenueEntry,
+      saveThirdPartyRequest,
+      deleteThirdPartyRequest,
       reload,
       fetchedAt,
     ],

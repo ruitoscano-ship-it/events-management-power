@@ -7,6 +7,7 @@ import {
   mapScheduleRow,
   mapSponsorRow,
   mapTaskRow,
+  mapThirdPartyRequestRow,
   mapVolunteerRow,
 } from './dbMappers'
 import { mapVenueLayoutRow } from './venueLayout'
@@ -25,6 +26,7 @@ function emptyEventShell(event: Event): EventData {
     venueLayout: null,
     sponsors: [],
     revenueEntries: [],
+    thirdPartyRequests: [],
     auditLog: [],
   })
 }
@@ -57,7 +59,7 @@ export async function fetchEventDataFromSupabase(
 
   const mappedEvent = mapEventRow(event as Record<string, unknown>)
 
-  const [schedule, volunteers, contributions, tasks, sponsors, revenue] =
+  const [schedule, volunteers, contributions, tasks, sponsors, revenue, thirdParty] =
     await Promise.all([
       supabase
         .from('schedule_blocks')
@@ -77,6 +79,11 @@ export async function fetchEventDataFromSupabase(
         .select('*')
         .eq('event_id', eventId)
         .order('recorded_at', { ascending: false }),
+      supabase
+        .from('third_party_requests')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('organization_name'),
     ])
 
   if (schedule.error) throw schedule.error
@@ -85,6 +92,7 @@ export async function fetchEventDataFromSupabase(
   if (tasks.error) throw tasks.error
   if (sponsors.error) throw sponsors.error
   if (revenue.error) throw revenue.error
+  if (thirdParty.error) throw thirdParty.error
 
   const volunteerIds = (volunteers.data ?? []).map((v) => v.id)
   let availability: EventData['availability'] = []
@@ -132,6 +140,9 @@ export async function fetchEventDataFromSupabase(
     ),
     revenueEntries: (revenue.data ?? []).map((r) =>
       mapRevenueRow(r as Record<string, unknown>),
+    ),
+    thirdPartyRequests: (thirdParty.data ?? []).map((r) =>
+      mapThirdPartyRequestRow(r as Record<string, unknown>),
     ),
     auditLog: [],
   })

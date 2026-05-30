@@ -7,7 +7,7 @@ import { VenueLayoutEditor } from './VenueLayoutEditor'
 import type { VenueLayout } from '../../types'
 
 export function OrganizerSalaoPage() {
-  const { data, saveVenueLayout, saving } = useEvent()
+  const { data, saveVenueLayout, saving, eventClosed } = useEvent()
   const [layout, setLayout] = useState<VenueLayout>(() =>
     data.venueLayout ?? createDefaultVenueLayout(data.event.id),
   )
@@ -37,13 +37,17 @@ export function OrganizerSalaoPage() {
       <section>
         <h2 className="text-xl font-bold text-white uppercase">Planta do salão</h2>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Define a pista de dança, júri, sponsors, postos de apoio (maquilhagem,
-          cabeleireiro) e mesas junto à pista. Arrasta e redimensiona no canvas; guarda
-          para sincronizar com a equipa.
+          Monta a planta com pista de dança, pódio, júri, sponsors, flores, banners no
+          chão, entrada e saída, postos de apoio e mesas. A grelha fina ajuda a alinhar;
+          ao largar uma zona, encaixa automaticamente.
         </p>
       </section>
 
-      <VenueLayoutEditor layout={layout} onChange={setLayout} />
+      <VenueLayoutEditor
+        layout={layout}
+        onChange={setLayout}
+        readOnly={eventClosed}
+      />
 
       {savedNotice && (
         <div
@@ -55,14 +59,16 @@ export function OrganizerSalaoPage() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => void handleSave()}
-        disabled={saving}
-        className={darkBtnPrimary + ' max-w-xs'}
-      >
-        {saving ? 'A guardar…' : 'Guardar planta'}
-      </button>
+      {!eventClosed && (
+        <button
+          type="button"
+          onClick={() => void handleSave()}
+          disabled={saving}
+          className={darkBtnPrimary + ' max-w-xs'}
+        >
+          {saving ? 'A guardar…' : 'Guardar planta'}
+        </button>
+      )}
     </div>
   )
 }

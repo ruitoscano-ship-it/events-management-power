@@ -9,6 +9,10 @@ import type {
   SponsorshipKind,
   RevenueEntryType,
   RevenueSource,
+  ThirdPartyMaterialCategory,
+  ThirdPartyOrgKind,
+  ThirdPartyRequest,
+  ThirdPartyRequestStatus,
   Volunteer,
   VolunteerAvailability,
   VolunteerTask,
@@ -158,6 +162,35 @@ export function mapSponsorRow(row: Record<string, unknown>): EventSponsor {
     notes: row.notes != null ? String(row.notes) : null,
     promised_at: row.promised_at != null ? String(row.promised_at).slice(0, 10) : null,
     received_at: row.received_at != null ? String(row.received_at).slice(0, 10) : null,
+  }
+}
+
+export function mapThirdPartyRequestRow(
+  row: Record<string, unknown>,
+): ThirdPartyRequest {
+  const date = (key: string) => {
+    const v = row[key]
+    return v != null ? String(v).slice(0, 10) : null
+  }
+  return {
+    id: String(row.id),
+    event_id: String(row.event_id),
+    organization_name: String(row.organization_name ?? ''),
+    organization_kind: (row.organization_kind as ThirdPartyOrgKind) ?? 'municipality',
+    material_category: (row.material_category as ThirdPartyMaterialCategory) ?? 'other',
+    item_description: String(row.item_description ?? ''),
+    quantity: row.quantity != null ? String(row.quantity) : null,
+    status: (row.status as ThirdPartyRequestStatus) ?? 'draft',
+    reference_number:
+      row.reference_number != null ? String(row.reference_number) : null,
+    contact_name: row.contact_name != null ? String(row.contact_name) : null,
+    contact_email: row.contact_email != null ? String(row.contact_email) : null,
+    contact_phone: row.contact_phone != null ? String(row.contact_phone) : null,
+    requested_at: date('requested_at'),
+    needed_by: date('needed_by'),
+    submitted_at: date('submitted_at'),
+    resolved_at: date('resolved_at'),
+    notes: row.notes != null ? String(row.notes) : null,
   }
 }
 
