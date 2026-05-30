@@ -660,8 +660,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
     ],
   )
 
-  if (state === 'loading' || !value) {
-    return <LoadingState message={state === 'loading' ? 'A carregar evento…' : undefined} />
+  if (state === 'loading') {
+    return <LoadingState message="A carregar evento…" />
   }
 
   if (error) {
@@ -677,6 +677,10 @@ export function EventProvider({ children }: { children: ReactNode }) {
         </button>
       </div>
     )
+  }
+
+  if (!value) {
+    return <LoadingState message="A carregar evento…" />
   }
 
   return (

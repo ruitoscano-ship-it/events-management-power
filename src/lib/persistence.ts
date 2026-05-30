@@ -1,5 +1,6 @@
 import { eventToDbRow } from './dbMappers'
 import { supabase } from './supabase'
+import { isMissingRelationError } from './supabaseErrors'
 import { venueLayoutToDbPayload } from './venueLayout'
 import type {
   Contribution,
@@ -126,7 +127,18 @@ export async function syncThirdPartyRequest(
   request: ThirdPartyRequest,
   useDb: boolean,
 ) {
-  if (useDb) await dbUpsert('third_party_requests', request)
+  if (!useDb) return
+  try {
+    await dbUpsert('third_party_requests', request)
+  } catch (e) {
+    const err = e as { code?: string; message?: string }
+    if (isMissingRelationError(err, 'third_party_requests')) {
+      throw new Error(
+        'Tabela third_party_requests em falta. Executa supabase/migrations/007_third_party_requests.sql no Supabase.',
+      )
+    }
+    throw e
+  }
 }
 
 export async function removeSponsor(id: string, useDb: boolean) {

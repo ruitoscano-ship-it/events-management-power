@@ -13,6 +13,7 @@ import {
 import { mapVenueLayoutRow } from './venueLayout'
 import { normalizeEventData } from './normalize'
 import { isSupabaseConfigured, supabase } from './supabase'
+import { isMissingRelationError } from './supabaseErrors'
 import type { Event, EventCatalog, EventData } from '../types'
 
 function emptyEventShell(event: Event): EventData {
@@ -92,7 +93,17 @@ export async function fetchEventDataFromSupabase(
   if (tasks.error) throw tasks.error
   if (sponsors.error) throw sponsors.error
   if (revenue.error) throw revenue.error
-  if (thirdParty.error) throw thirdParty.error
+  if (
+    thirdParty.error &&
+    !isMissingRelationError(thirdParty.error, 'third_party_requests')
+  ) {
+    throw thirdParty.error
+  }
+  if (thirdParty.error) {
+    console.warn(
+      '[Supabase] Tabela third_party_requests em falta — executa supabase/migrations/007_third_party_requests.sql',
+    )
+  }
 
   const volunteerIds = (volunteers.data ?? []).map((v) => v.id)
   let availability: EventData['availability'] = []
@@ -141,9 +152,12 @@ export async function fetchEventDataFromSupabase(
     revenueEntries: (revenue.data ?? []).map((r) =>
       mapRevenueRow(r as Record<string, unknown>),
     ),
-    thirdPartyRequests: (thirdParty.data ?? []).map((r) =>
-      mapThirdPartyRequestRow(r as Record<string, unknown>),
-    ),
+    thirdPartyRequests:
+      thirdParty.error || !thirdParty.data
+        ? []
+        : thirdParty.data.map((r) =>
+            mapThirdPartyRequestRow(r as Record<string, unknown>),
+          ),
     auditLog: [],
   })
 }
