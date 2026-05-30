@@ -9,6 +9,9 @@ import type {
   EventSponsor,
   RevenueEntry,
   ScheduleBlock,
+  BarOperation,
+  BarProduct,
+  BarSale,
   ThirdPartyRequest,
   VenueLayout,
   Volunteer,
@@ -27,6 +30,9 @@ type Table =
   | 'event_sponsors'
   | 'revenue_entries'
   | 'third_party_requests'
+  | 'bar_operations'
+  | 'bar_products'
+  | 'bar_sales'
 
 async function dbUpsert(
   table: Table,
@@ -151,6 +157,40 @@ export async function removeRevenueEntry(id: string, useDb: boolean) {
 
 export async function removeThirdPartyRequest(id: string, useDb: boolean) {
   if (useDb) await dbDelete('third_party_requests', id)
+}
+
+export async function syncBarOperation(op: BarOperation, useDb: boolean) {
+  if (!useDb) return
+  try {
+    await dbUpsert('bar_operations', {
+      ...op,
+      close_snapshot: op.close_snapshot,
+    })
+  } catch (e) {
+    const err = e as { code?: string; message?: string }
+    if (isMissingRelationError(err, 'bar_operations')) {
+      throw new Error(
+        'Tabelas de bar em falta. Executa supabase/migrations/008_bar_management.sql no Supabase.',
+      )
+    }
+    throw e
+  }
+}
+
+export async function syncBarProduct(product: BarProduct, useDb: boolean) {
+  if (useDb) await dbUpsert('bar_products', product)
+}
+
+export async function syncBarSale(sale: BarSale, useDb: boolean) {
+  if (useDb) await dbUpsert('bar_sales', sale)
+}
+
+export async function removeBarProduct(id: string, useDb: boolean) {
+  if (useDb) await dbDelete('bar_products', id)
+}
+
+export async function removeBarSale(id: string, useDb: boolean) {
+  if (useDb) await dbDelete('bar_sales', id)
 }
 
 export async function removeSchedule(id: string, useDb: boolean) {

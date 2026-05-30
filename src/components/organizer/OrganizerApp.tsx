@@ -7,6 +7,7 @@ import { OrganizerLogisticsPage } from './OrganizerLogisticsPage'
 import { OrganizerNav, ORGANIZER_TAB_ORDER, type OrganizerTab } from './OrganizerNav'
 import { OrganizerSchedulePage } from './OrganizerSchedulePage'
 import { OrganizerAdminPage } from './OrganizerAdminPage'
+import { OrganizerBarPage } from './OrganizerBarPage'
 import { OrganizerFinancialsPage } from './OrganizerFinancialsPage'
 import { OrganizerSalaoPage } from './OrganizerSalaoPage'
 import { OrganizerSponsorsPage } from './OrganizerSponsorsPage'
@@ -38,6 +39,7 @@ export function OrganizerApp() {
         {tab === 'salao' && <OrganizerSalaoPage />}
         {tab === 'sponsors' && <OrganizerSponsorsPage />}
         {tab === 'financials' && <OrganizerFinancialsPage />}
+        {tab === 'bar' && <OrganizerBarPage />}
         {tab === 'admin' && <OrganizerAdminPage />}
       </PageTransition>
     </div>

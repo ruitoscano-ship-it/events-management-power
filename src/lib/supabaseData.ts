@@ -1,6 +1,9 @@
 import { saveCatalog } from './catalog'
 import {
   mapAvailabilityRow,
+  mapBarOperationRow,
+  mapBarProductRow,
+  mapBarSaleRow,
   mapContributionRow,
   mapEventRow,
   mapRevenueRow,
@@ -28,6 +31,9 @@ function emptyEventShell(event: Event): EventData {
     sponsors: [],
     revenueEntries: [],
     thirdPartyRequests: [],
+    barOperation: null,
+    barProducts: [],
+    barSales: [],
     auditLog: [],
   })
 }
@@ -60,8 +66,18 @@ export async function fetchEventDataFromSupabase(
 
   const mappedEvent = mapEventRow(event as Record<string, unknown>)
 
-  const [schedule, volunteers, contributions, tasks, sponsors, revenue, thirdParty] =
-    await Promise.all([
+  const [
+    schedule,
+    volunteers,
+    contributions,
+    tasks,
+    sponsors,
+    revenue,
+    thirdParty,
+    barOp,
+    barProducts,
+    barSales,
+  ] = await Promise.all([
       supabase
         .from('schedule_blocks')
         .select('*')
@@ -85,6 +101,21 @@ export async function fetchEventDataFromSupabase(
         .select('*')
         .eq('event_id', eventId)
         .order('organization_name'),
+      supabase
+        .from('bar_operations')
+        .select('*')
+        .eq('event_id', eventId)
+        .maybeSingle(),
+      supabase
+        .from('bar_products')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('sort_order'),
+      supabase
+        .from('bar_sales')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('sold_at', { ascending: false }),
     ])
 
   if (schedule.error) throw schedule.error
@@ -102,6 +133,20 @@ export async function fetchEventDataFromSupabase(
   if (thirdParty.error) {
     console.warn(
       '[Supabase] Tabela third_party_requests em falta — executa supabase/migrations/007_third_party_requests.sql',
+    )
+  }
+  if (barOp.error && !isMissingRelationError(barOp.error, 'bar_operations')) {
+    throw barOp.error
+  }
+  if (barProducts.error && !isMissingRelationError(barProducts.error, 'bar_products')) {
+    throw barProducts.error
+  }
+  if (barSales.error && !isMissingRelationError(barSales.error, 'bar_sales')) {
+    throw barSales.error
+  }
+  if (barOp.error || barProducts.error || barSales.error) {
+    console.warn(
+      '[Supabase] Tabelas de bar em falta — executa supabase/migrations/008_bar_management.sql',
     )
   }
 
@@ -158,6 +203,20 @@ export async function fetchEventDataFromSupabase(
         : thirdParty.data.map((r) =>
             mapThirdPartyRequestRow(r as Record<string, unknown>),
           ),
+    barOperation:
+      barOp.error || !barOp.data
+        ? null
+        : mapBarOperationRow(barOp.data as Record<string, unknown>),
+    barProducts:
+      barProducts.error || !barProducts.data
+        ? []
+        : barProducts.data.map((r) =>
+            mapBarProductRow(r as Record<string, unknown>),
+          ),
+    barSales:
+      barSales.error || !barSales.data
+        ? []
+        : barSales.data.map((r) => mapBarSaleRow(r as Record<string, unknown>)),
     auditLog: [],
   })
 }

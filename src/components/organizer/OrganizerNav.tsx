@@ -8,6 +8,7 @@ export type OrganizerTab =
   | 'salao'
   | 'sponsors'
   | 'financials'
+  | 'bar'
   | 'admin'
 
 const tabs: readonly NavTab<OrganizerTab>[] = [
@@ -18,6 +19,7 @@ const tabs: readonly NavTab<OrganizerTab>[] = [
   { id: 'salao', label: 'SALÃO' },
   { id: 'sponsors', label: 'SPONSORS' },
   { id: 'financials', label: 'FINANCEIRO' },
+  { id: 'bar', label: 'BAR' },
   { id: 'admin', label: 'ADMIN' },
 ]
 

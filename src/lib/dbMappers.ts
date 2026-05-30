@@ -9,6 +9,11 @@ import type {
   SponsorshipKind,
   RevenueEntryType,
   RevenueSource,
+  BarCloseSnapshot,
+  BarOperation,
+  BarOperationStatus,
+  BarProduct,
+  BarSale,
   ThirdPartyMaterialCategory,
   ThirdPartyOrgKind,
   ThirdPartyRequest,
@@ -190,6 +195,50 @@ export function mapThirdPartyRequestRow(
     needed_by: date('needed_by'),
     submitted_at: date('submitted_at'),
     resolved_at: date('resolved_at'),
+    notes: row.notes != null ? String(row.notes) : null,
+  }
+}
+
+export function mapBarOperationRow(row: Record<string, unknown>): BarOperation {
+  let snapshot: BarCloseSnapshot | null = null
+  const raw = row.close_snapshot
+  if (raw && typeof raw === 'object') {
+    snapshot = raw as BarCloseSnapshot
+  }
+  return {
+    id: String(row.id),
+    event_id: String(row.event_id),
+    status: (row.status as BarOperationStatus) ?? 'active',
+    opened_at: String(row.opened_at ?? new Date().toISOString()),
+    closed_at: row.closed_at != null ? String(row.closed_at) : null,
+    close_snapshot: snapshot,
+    revenue_sync_entry_id:
+      row.revenue_sync_entry_id != null ? String(row.revenue_sync_entry_id) : null,
+  }
+}
+
+export function mapBarProductRow(row: Record<string, unknown>): BarProduct {
+  return {
+    id: String(row.id),
+    event_id: String(row.event_id),
+    name: String(row.name ?? ''),
+    unit_price: mapNumeric(row, 'unit_price') ?? 0,
+    quantity_collected: mapNumeric(row, 'quantity_collected') ?? 0,
+    quantity_allocated: mapNumeric(row, 'quantity_allocated') ?? 0,
+    sort_order: Number(row.sort_order ?? 0),
+    active: row.active !== false,
+  }
+}
+
+export function mapBarSaleRow(row: Record<string, unknown>): BarSale {
+  return {
+    id: String(row.id),
+    event_id: String(row.event_id),
+    product_id: String(row.product_id),
+    quantity: mapNumeric(row, 'quantity') ?? 1,
+    unit_price: mapNumeric(row, 'unit_price') ?? 0,
+    total_amount: mapNumeric(row, 'total_amount') ?? 0,
+    sold_at: String(row.sold_at ?? new Date().toISOString()),
     notes: row.notes != null ? String(row.notes) : null,
   }
 }

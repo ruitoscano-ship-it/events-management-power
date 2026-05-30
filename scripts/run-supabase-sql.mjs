@@ -57,6 +57,7 @@ const defaultFiles = [
   'supabase/migrations/005_events_archived.sql',
   'supabase/migrations/006_reset_volunteer_pin.sql',
   'supabase/migrations/007_third_party_requests.sql',
+  'supabase/migrations/008_bar_management.sql',
   'supabase/seed.sql',
 ]
 
@@ -102,7 +103,9 @@ try {
       (select count(*)::int from volunteer_accounts) as volunteer_accounts,
       (select count(*)::int from organizer_accounts) as organizer_accounts,
       (select count(*)::int from volunteers) as volunteers,
-      (select count(*)::int from third_party_requests) as third_party_requests
+      (select count(*)::int from third_party_requests) as third_party_requests,
+      (select count(*)::int from bar_products) as bar_products,
+      (select count(*)::int from bar_sales) as bar_sales
   `)
   console.log('\n📊 Contagens:', rows[0])
 } catch (e) {

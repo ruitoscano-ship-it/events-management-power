@@ -23,9 +23,14 @@ import {
   removeRevenueEntry,
   removeSchedule,
   removeSponsor,
+  removeBarProduct,
+  removeBarSale,
   removeThirdPartyRequest,
   removeTask,
   syncAvailability,
+  syncBarOperation,
+  syncBarProduct,
+  syncBarSale,
   syncTask,
   syncContribution,
   syncEvent,
@@ -37,8 +42,20 @@ import {
   syncVenueLayout,
   syncVolunteer,
 } from '../lib/persistence'
+import {
+  availableQuantity,
+  buildBarCloseSnapshot,
+  buildBarRevenueSyncEntry,
+  createDefaultBarOperation,
+  findBarRevenueSyncEntry,
+  totalSalesRevenue,
+} from '../lib/barManagement'
+import { newId } from '../lib/datetime'
 import { reconcileBlockTasks } from '../lib/scheduleInline'
 import type {
+  BarOperation,
+  BarProduct,
+  BarSale,
   Contribution,
   Event,
   EventData,
@@ -88,6 +105,14 @@ interface EventContextValue {
   deleteRevenueEntry: (id: string) => Promise<void>
   saveThirdPartyRequest: (request: ThirdPartyRequest, isNew?: boolean) => Promise<void>
   deleteThirdPartyRequest: (id: string) => Promise<void>
+  startBarOperation: () => Promise<void>
+  saveBarProduct: (product: BarProduct, isNew?: boolean) => Promise<void>
+  deleteBarProduct: (id: string) => Promise<void>
+  saveBarSale: (sale: BarSale) => Promise<string | null>
+  deleteBarSale: (id: string) => Promise<void>
+  closeBarOperation: (options?: { syncRevenue?: boolean }) => Promise<string | null>
+  syncBarRevenueFromSales: () => Promise<void>
+  barFrozen: boolean
 }
 
 const EventContext = createContext<EventContextValue | null>(null)
@@ -109,6 +134,9 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const [saving, setSaving] = useState(false)
 
   const eventClosed = Boolean(data && isEventClosed(data.event))
+  const barFrozen = Boolean(
+    data?.barOperation?.status === 'closed' || eventClosed,
+  )
 
   const apply = useCallback(
     async (
@@ -590,6 +618,195 @@ export function EventProvider({ children }: { children: ReactNode }) {
     [apply, data, useDb],
   )
 
+  const startBarOperation = useCallback(async () => {
+    if (!data) return
+    if (data.barOperation) return
+    const op = createDefaultBarOperation(data.event.id, newId())
+    await apply(
+      patchData(data, { barOperation: op }),
+      () => syncBarOperation(op, useDb),
+      {
+        action: 'event.updated',
+        summary: 'Operação de bar iniciada',
+        entity_type: 'event',
+        entity_id: data.event.id,
+      },
+    )
+  }, [apply, data, useDb])
+
+  const saveBarProduct = useCallback(
+    async (product: BarProduct, isNew = false) => {
+      if (!data) return
+      if (barFrozen) throw new Error('Bar encerrado — apenas consulta.')
+      const exists = data.barProducts.some((p) => p.id === product.id)
+      const barProducts = exists
+        ? data.barProducts.map((p) => (p.id === product.id ? product : p))
+        : [...data.barProducts, product]
+      await apply(
+        patchData(data, { barProducts }),
+        () => syncBarProduct(product, useDb),
+        {
+          action: 'event.updated',
+          summary: `${isNew ? 'Produto de bar' : 'Produto atualizado'}: ${product.name}`,
+          entity_type: 'event',
+          entity_id: product.id,
+        },
+      )
+    },
+    [apply, barFrozen, data, useDb],
+  )
+
+  const deleteBarProduct = useCallback(
+    async (id: string) => {
+      if (!data) return
+      if (barFrozen) throw new Error('Bar encerrado — apenas consulta.')
+      const p = data.barProducts.find((x) => x.id === id)
+      const barProducts = data.barProducts.filter((x) => x.id !== id)
+      await apply(
+        patchData(data, { barProducts }),
+        () => removeBarProduct(id, useDb),
+        {
+          action: 'event.updated',
+          summary: `Produto removido: ${p?.name ?? id}`,
+          entity_type: 'event',
+          entity_id: id,
+        },
+      )
+    },
+    [apply, barFrozen, data, useDb],
+  )
+
+  const saveBarSale = useCallback(
+    async (sale: BarSale): Promise<string | null> => {
+      if (!data) return 'Dados do evento indisponíveis.'
+      if (barFrozen) return 'Bar encerrado — não é possível registar vendas.'
+      if (!data.barOperation || data.barOperation.status !== 'active') {
+        return 'Inicia a operação de bar antes de registar vendas.'
+      }
+      const product = data.barProducts.find((p) => p.id === sale.product_id)
+      if (!product) return 'Produto não encontrado.'
+      const avail = availableQuantity(product, data.barSales)
+      const exists = data.barSales.some((s) => s.id === sale.id)
+      const prevQty = exists
+        ? data.barSales.find((s) => s.id === sale.id)?.quantity ?? 0
+        : 0
+      const delta = sale.quantity - prevQty
+      if (delta > avail + 0.0001) {
+        return `Stock insuficiente. Disponível: ${avail}.`
+      }
+      const barSales = exists
+        ? data.barSales.map((s) => (s.id === sale.id ? sale : s))
+        : [...data.barSales, sale]
+      await apply(
+        patchData(data, { barSales }),
+        () => syncBarSale(sale, useDb),
+        {
+          action: 'event.updated',
+          summary: `Venda: ${product.name} × ${sale.quantity}`,
+          entity_type: 'event',
+          entity_id: sale.id,
+        },
+      )
+      return null
+    },
+    [apply, barFrozen, data, useDb],
+  )
+
+  const deleteBarSale = useCallback(
+    async (id: string) => {
+      if (!data) return
+      if (barFrozen) throw new Error('Bar encerrado — apenas consulta.')
+      const barSales = data.barSales.filter((s) => s.id !== id)
+      await apply(
+        patchData(data, { barSales }),
+        () => removeBarSale(id, useDb),
+        {
+          action: 'event.updated',
+          summary: 'Venda de bar removida',
+          entity_type: 'event',
+          entity_id: id,
+        },
+      )
+    },
+    [apply, barFrozen, data, useDb],
+  )
+
+  const syncBarRevenueFromSales = useCallback(async () => {
+    if (!data) return
+    if (barFrozen) throw new Error('Bar encerrado — não é possível alterar receitas.')
+    const salesTotal = totalSalesRevenue(data.barSales)
+    const existing = findBarRevenueSyncEntry(data.revenueEntries)
+    const entry = buildBarRevenueSyncEntry(data.event, salesTotal, existing)
+    const exists = data.revenueEntries.some((r) => r.id === entry.id)
+    const revenueEntries = exists
+      ? data.revenueEntries.map((r) => (r.id === entry.id ? entry : r))
+      : [...data.revenueEntries, entry]
+    let barOperation = data.barOperation
+    if (barOperation) {
+      barOperation = { ...barOperation, revenue_sync_entry_id: entry.id }
+    }
+    await apply(
+      patchData(data, { revenueEntries, barOperation }),
+      async () => {
+        await syncRevenueEntry(entry, useDb)
+        if (barOperation) await syncBarOperation(barOperation, useDb)
+      },
+      {
+        action: 'event.updated',
+        summary: `Receita do bar sincronizada: ${salesTotal.toFixed(2)} €`,
+        entity_type: 'event',
+        entity_id: entry.id,
+      },
+    )
+  }, [apply, barFrozen, data, useDb])
+
+  const closeBarOperation = useCallback(
+    async (options?: { syncRevenue?: boolean }): Promise<string | null> => {
+      if (!data) return 'Dados do evento indisponíveis.'
+      if (!data.barOperation) return 'Não há operação de bar ativa.'
+      if (data.barOperation.status === 'closed') return 'O bar já está encerrado.'
+
+      let working = data
+      if (options?.syncRevenue) {
+        const salesTotal = totalSalesRevenue(working.barSales)
+        const existing = findBarRevenueSyncEntry(working.revenueEntries)
+        const entry = buildBarRevenueSyncEntry(working.event, salesTotal, existing)
+        const exists = working.revenueEntries.some((r) => r.id === entry.id)
+        working = patchData(working, {
+          revenueEntries: exists
+            ? working.revenueEntries.map((r) => (r.id === entry.id ? entry : r))
+            : [...working.revenueEntries, entry],
+          barOperation: {
+            ...working.barOperation!,
+            revenue_sync_entry_id: entry.id,
+          },
+        })
+        await syncRevenueEntry(entry, useDb)
+      }
+
+      const snapshot = buildBarCloseSnapshot(working)
+      const closed: BarOperation = {
+        ...working.barOperation!,
+        status: 'closed',
+        closed_at: snapshot.closed_at,
+        close_snapshot: snapshot,
+      }
+
+      await apply(
+        patchData(working, { barOperation: closed }),
+        () => syncBarOperation(closed, useDb),
+        {
+          action: 'event.updated',
+          summary: `Bar encerrado — ${snapshot.total_units_sold} unidades, ${snapshot.sales_revenue.toFixed(2)} €`,
+          entity_type: 'event',
+          entity_id: data.event.id,
+        },
+      )
+      return null
+    },
+    [apply, data, useDb],
+  )
+
   const value = useMemo(
     () =>
       data
@@ -621,6 +838,14 @@ export function EventProvider({ children }: { children: ReactNode }) {
             deleteRevenueEntry,
             saveThirdPartyRequest,
             deleteThirdPartyRequest,
+            startBarOperation,
+            saveBarProduct,
+            deleteBarProduct,
+            saveBarSale,
+            deleteBarSale,
+            closeBarOperation,
+            syncBarRevenueFromSales,
+            barFrozen,
             refreshEvent: reload,
             lastFetchedAt: fetchedAt,
           }
@@ -655,6 +880,14 @@ export function EventProvider({ children }: { children: ReactNode }) {
       deleteRevenueEntry,
       saveThirdPartyRequest,
       deleteThirdPartyRequest,
+      startBarOperation,
+      saveBarProduct,
+      deleteBarProduct,
+      saveBarSale,
+      deleteBarSale,
+      closeBarOperation,
+      syncBarRevenueFromSales,
+      barFrozen,
       reload,
       fetchedAt,
     ],

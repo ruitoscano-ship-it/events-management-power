@@ -236,6 +236,67 @@ export type ThirdPartyRequestStatus =
   | 'fulfilled'
   | 'cancelled'
 
+export type BarOperationStatus = 'active' | 'closed'
+
+export interface BarCloseSnapshot {
+  closed_at: string
+  event_name: string
+  products: Array<{
+    id: string
+    name: string
+    unit_price: number
+    collected: number
+    allocated: number
+    sold: number
+    remaining: number
+    revenue: number
+  }>
+  total_units_sold: number
+  sales_revenue: number
+  bar_revenue_recorded: number
+  variance: number
+}
+
+export interface BarOperation {
+  id: string
+  event_id: string
+  status: BarOperationStatus
+  opened_at: string
+  closed_at: string | null
+  close_snapshot: BarCloseSnapshot | null
+  revenue_sync_entry_id: string | null
+}
+
+export interface BarProduct {
+  id: string
+  event_id: string
+  name: string
+  unit_price: number
+  quantity_collected: number
+  quantity_allocated: number
+  sort_order: number
+  active: boolean
+}
+
+export interface BarSale {
+  id: string
+  event_id: string
+  product_id: string
+  quantity: number
+  unit_price: number
+  total_amount: number
+  sold_at: string
+  notes: string | null
+}
+
+export interface BarHistoryEntry {
+  event_id: string
+  event_name: string
+  event_date: string
+  closed_at: string
+  snapshot: BarCloseSnapshot
+}
+
 export interface ThirdPartyRequest {
   id: string
   event_id: string
@@ -267,5 +328,8 @@ export interface EventData {
   sponsors: EventSponsor[]
   revenueEntries: RevenueEntry[]
   thirdPartyRequests: ThirdPartyRequest[]
+  barOperation: BarOperation | null
+  barProducts: BarProduct[]
+  barSales: BarSale[]
   auditLog: AuditLogEntry[]
 }
