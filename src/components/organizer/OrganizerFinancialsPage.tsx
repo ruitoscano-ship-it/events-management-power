@@ -1,19 +1,38 @@
 import { useMemo, useState } from 'react'
-import { Plus, TrendingUp } from 'lucide-react'
+import { Building2, ExternalLink, Plus, TrendingUp } from 'lucide-react'
 import { useEvent } from '../../context/EventContext'
 import { formatEur } from '../../lib/currency'
-import { REVENUE_SOURCE_LABELS, sumRevenue } from '../../lib/financials'
+import {
+  activeSponsors,
+  REVENUE_SOURCE_LABELS,
+  SPONSOR_STATUS_LABELS,
+  SPONSORSHIP_KIND_LABELS,
+  sponsorCashAmount,
+  sponsorDisplayValue,
+  sumRevenue,
+  sumSponsorAmounts,
+} from '../../lib/financials'
 import { RevenueEntryForm } from '../forms/RevenueEntryForm'
+import { SponsorForm } from '../forms/SponsorForm'
 import { Modal } from '../ui/Modal'
-import type { RevenueEntry, RevenueEntryType, RevenueSource } from '../../types'
+import type { EventSponsor, RevenueEntry, RevenueEntryType, RevenueSource, SponsorStatus } from '../../types'
 
 type ModalState =
   | { source: RevenueSource; entryType: RevenueEntryType; edit?: RevenueEntry }
   | null
 
+const SPONSOR_STATUS_COLORS: Record<SponsorStatus, string> = {
+  promised: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
+  confirmed: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
+  received: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+  cancelled: 'text-slate-500 bg-slate-500/10 border-slate-500/30',
+}
+
 export function OrganizerFinancialsPage() {
-  const { data, deleteRevenueEntry } = useEvent()
+  const { data, deleteRevenueEntry, deleteSponsor, eventClosed } = useEvent()
   const [modal, setModal] = useState<ModalState>(null)
+  const [sponsorModal, setSponsorModal] = useState<'add' | 'edit' | null>(null)
+  const [editSponsor, setEditSponsor] = useState<EventSponsor | null>(null)
 
   const forecastTotal = useMemo(
     () => sumRevenue(data.revenueEntries, { entry_type: 'forecast' }),
@@ -42,6 +61,9 @@ export function OrganizerFinancialsPage() {
   )
 
   const variance = actualTotal - forecastTotal
+  const sponsorTotals = useMemo(() => sumSponsorAmounts(data.sponsors), [data.sponsors])
+  const sponsorsActive = useMemo(() => activeSponsors(data.sponsors), [data.sponsors])
+  const totalWithSponsors = actualTotal + sponsorTotals.received
 
   return (
     <div className="page-container space-y-8">
@@ -51,23 +73,38 @@ export function OrganizerFinancialsPage() {
           Financeiro
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          Previsão e registo de receitas do bar e bilhetes vendidos.
+          Receitas do bar e bilhetes, patrocínios comprometidos e recebidos, e visão
+          consolidada do evento.
         </p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <SummaryCard label="Previsão total" value={formatEur(forecastTotal)} accent="cyan" />
-          <SummaryCard label="Receita registada" value={formatEur(actualTotal)} accent="emerald" />
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <SummaryCard label="Previsão (bar + bilhetes)" value={formatEur(forecastTotal)} accent="cyan" />
+          <SummaryCard label="Receitas registadas" value={formatEur(actualTotal)} accent="emerald" />
           <SummaryCard
-            label="Diferença (real vs prev.)"
+            label="Patrocínios comprometidos"
+            value={formatEur(sponsorTotals.committed)}
+            accent="slate"
+          />
+          <SummaryCard
+            label="Patrocínios recebidos"
+            value={formatEur(sponsorTotals.received)}
+            accent="emerald"
+          />
+          <SummaryCard
+            label="Total (receitas + patrocínios)"
+            value={formatEur(totalWithSponsors)}
+            accent="emerald"
+          />
+          <SummaryCard
+            label="Diferença prev. vs real"
             value={formatEur(variance)}
             accent={variance >= 0 ? 'emerald' : 'amber'}
           />
-          <SummaryCard
-            label="Bilhetes (prev. / real)"
-            value={`${formatEur(ticketsForecast)} / ${formatEur(ticketsActual)}`}
-            accent="slate"
-          />
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Bar: {formatEur(barForecast)} prev. / {formatEur(barActual)} real · Bilhetes:{' '}
+          {formatEur(ticketsForecast)} / {formatEur(ticketsActual)}
+        </p>
       </section>
 
       <RevenueSection
@@ -82,6 +119,22 @@ export function OrganizerFinancialsPage() {
         onAddActual={() => setModal({ source: 'bar', entryType: 'actual' })}
         onEdit={(entry) => setModal({ source: 'bar', entryType: entry.entry_type, edit: entry })}
         onDelete={deleteRevenueEntry}
+      />
+
+      <SponsorsFinanceSection
+        sponsors={sponsorsActive}
+        committed={sponsorTotals.committed}
+        received={sponsorTotals.received}
+        eventClosed={eventClosed}
+        onAdd={() => {
+          setEditSponsor(null)
+          setSponsorModal('add')
+        }}
+        onEdit={(s) => {
+          setEditSponsor(s)
+          setSponsorModal('edit')
+        }}
+        onDelete={deleteSponsor}
       />
 
       <RevenueSection
@@ -99,6 +152,19 @@ export function OrganizerFinancialsPage() {
         }
         onDelete={deleteRevenueEntry}
       />
+
+      <Modal
+        title={sponsorModal === 'add' ? 'Novo patrocinador' : 'Editar patrocinador'}
+        open={sponsorModal !== null}
+        onClose={() => setSponsorModal(null)}
+      >
+        {sponsorModal === 'add' && (
+          <SponsorForm onDone={() => setSponsorModal(null)} />
+        )}
+        {sponsorModal === 'edit' && editSponsor && (
+          <SponsorForm initial={editSponsor} onDone={() => setSponsorModal(null)} />
+        )}
+      </Modal>
 
       <Modal
         title={
@@ -121,6 +187,122 @@ export function OrganizerFinancialsPage() {
         )}
       </Modal>
     </div>
+  )
+}
+
+function SponsorsFinanceSection({
+  sponsors,
+  committed,
+  received,
+  eventClosed,
+  onAdd,
+  onEdit,
+  onDelete,
+}: {
+  sponsors: EventSponsor[]
+  committed: number
+  received: number
+  eventClosed: boolean
+  onAdd: () => void
+  onEdit: (s: EventSponsor) => void
+  onDelete: (id: string) => void
+}) {
+  const pending = Math.max(0, committed - received)
+
+  return (
+    <section className="rounded-xl border border-[#2a2a3d] bg-[#12121c] p-4 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+        <div>
+          <h3 className="flex items-center gap-2 text-lg font-bold uppercase text-white">
+            <Building2 className="h-5 w-5 text-[#ff2d6a]" />
+            Patrocínios
+          </h3>
+          <p className="mt-1 text-xs text-slate-500">
+            Comprometido {formatEur(committed)} · Recebido {formatEur(received)} · Em falta{' '}
+            {formatEur(pending)}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {!eventClosed && (
+            <button
+              type="button"
+              onClick={onAdd}
+              className="inline-flex items-center gap-1 rounded-lg bg-[#ff2d6a] px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Patrocinador
+            </button>
+          )}
+          <a
+            href="#sponsors"
+            className="inline-flex items-center gap-1 rounded-lg border border-[#2a2a3d] px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-white"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Separador sponsors
+          </a>
+        </div>
+      </div>
+
+      {sponsors.length === 0 ? (
+        <p className="text-sm text-slate-600">
+          Sem patrocínios ativos. Adiciona contribuições monetárias ou em espécie.
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {sponsors.map((s) => {
+            const cash = sponsorCashAmount(s)
+            return (
+              <li
+                key={s.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#2a2a3d]/80 bg-[#0a0a12] px-3 py-2.5"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-white">{s.name}</p>
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${SPONSOR_STATUS_COLORS[s.status]}`}
+                    >
+                      {SPONSOR_STATUS_LABELS[s.status]}
+                    </span>
+                    <span className="text-[10px] uppercase text-slate-500">
+                      {SPONSORSHIP_KIND_LABELS[s.sponsorship_kind]}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-sm text-[#ff2d6a]">{sponsorDisplayValue(s)}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  {cash > 0 ? (
+                    <span className="text-sm font-semibold text-emerald-400">
+                      {formatEur(cash)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-500">Em espécie</span>
+                  )}
+                  {!eventClosed && (
+                    <span className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onEdit(s)}
+                        className="text-[10px] text-slate-500 hover:text-white"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(s.id)}
+                        className="text-[10px] text-slate-500 hover:text-red-400"
+                      >
+                        Apagar
+                      </button>
+                    </span>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
   )
 }
 

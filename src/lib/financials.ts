@@ -49,6 +49,16 @@ export function sumSponsorAmounts(sponsors: EventSponsor[]): {
   return { committed, received }
 }
 
+export function activeSponsors(sponsors: EventSponsor[]): EventSponsor[] {
+  return sponsors.filter((s) => s.status !== 'cancelled')
+}
+
+/** Valor monetário registado no patrocínio (0 se só em espécie). */
+export function sponsorCashAmount(s: EventSponsor): number {
+  if (s.sponsorship_kind === 'in_kind') return 0
+  return s.amount ?? 0
+}
+
 export function sumRevenue(
   entries: RevenueEntry[],
   filter?: { source?: RevenueSource; entry_type?: RevenueEntry['entry_type'] },
